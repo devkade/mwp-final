@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -187,25 +188,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onPostClicked(Post post) {
-        // 포스트 상세보기 다이얼로그
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_post_detail, null);
+        try {
+            // Null check for post
+            if (post == null) {
+                Toast.makeText(this, "포스트를 표시할 수 없습니다", Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "onPostClicked: post is null");
+                return;
+            }
 
-        ImageView ivPostImage = dialogView.findViewById(R.id.ivPostImage);
-        TextView tvPostTitle = dialogView.findViewById(R.id.tvPostTitle);
-        TextView tvPostText = dialogView.findViewById(R.id.tvPostText);
+            // 포스트 상세보기 다이얼로그
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_post_detail, null);
 
-        // Post 데이터로 뷰 채우기
-        if (post.getImageBitmap() != null) {
-            ivPostImage.setImageBitmap(post.getImageBitmap());
+            ImageView ivPostImage = dialogView.findViewById(R.id.ivPostImage);
+            TextView tvPostTitle = dialogView.findViewById(R.id.tvPostTitle);
+            TextView tvPostText = dialogView.findViewById(R.id.tvPostText);
+
+            // Post 데이터로 뷰 채우기
+            if (post.getImageBitmap() != null) {
+                ivPostImage.setImageBitmap(post.getImageBitmap());
+            }
+            tvPostTitle.setText(post.getTitle());
+            tvPostText.setText(post.getText());
+
+            // AlertDialog로 표시
+            new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setNegativeButton("닫기", null)
+                .show();
+
+            Log.d(TAG, "onPostClicked: dialog shown for post: " + post.getTitle());
+
+        } catch (NullPointerException e) {
+            Log.e(TAG, "onPostClicked - NullPointerException: " + e.getMessage(), e);
+            Toast.makeText(this, "포스트 데이터를 불러올 수 없습니다", Toast.LENGTH_SHORT).show();
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "onPostClicked - IllegalStateException: " + e.getMessage(), e);
+            Toast.makeText(this, "다이얼로그를 표시할 수 없습니다", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "onPostClicked - Unexpected error: " + e.getMessage(), e);
+            Toast.makeText(this, "포스트를 표시할 수 없습니다", Toast.LENGTH_SHORT).show();
         }
-        tvPostTitle.setText(post.getTitle());
-        tvPostText.setText(post.getText());
-
-        // AlertDialog로 표시
-        new AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setNegativeButton("닫기", null)
-            .show();
     }
 
     public void onClickUpload(View v) {

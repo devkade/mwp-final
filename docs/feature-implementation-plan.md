@@ -204,10 +204,12 @@ private void onPostClicked(Post post) {
 }
 ```
 
-#### 4.2. Try-catch 추가 (에러 처리)
-- [ ] onPostClicked() 전체를 try-catch로 감싸기
-- [ ] NullPointerException, IllegalStateException 처리
-- [ ] Toast로 "포스트를 표시할 수 없습니다" 메시지 표시
+#### 4.2. Try-catch 추가 (에러 처리) ✅
+- [x] onPostClicked() 전체를 try-catch로 감싸기
+- [x] NullPointerException, IllegalStateException 처리
+- [x] Toast로 "포스트를 표시할 수 없습니다" 메시지 표시
+- [x] Null post 객체에 대한 사전 검사 추가
+- [x] 로깅 추가 (디버깅 및 모니터링용)
 
 **테스트 체크리스트:**
 - [x] 이미지 클릭 시 다이얼로그 표시 - ✅ 준비됨
