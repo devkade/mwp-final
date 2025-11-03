@@ -34,9 +34,9 @@ build/
 *.egg
 
 # Django
-# db.sqlite3
-# db.sqlite3-journal
-# media/
+db.sqlite3
+db.sqlite3-journal
+media/
 staticfiles/
 *.log
 
@@ -64,6 +64,7 @@ Thumbs.db
 *.bak
 *.cache
 .claude/
+docs/
 
 CLAUDE.md
 GEMINI.md
