@@ -38,10 +38,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void loadRememberedUsername() {
-        String saved = SecureTokenManager.getInstance().getUsername();
-        if (saved != null && !saved.isEmpty()) {
-            usernameInput.setText(saved);
-            rememberUsernameCheckbox.setChecked(true);
+        try {
+            String saved = SecureTokenManager.getInstance().getUsername();
+            if (saved != null && !saved.isEmpty()) {
+                usernameInput.setText(saved);
+                rememberUsernameCheckbox.setChecked(true);
+            }
+        } catch (RuntimeException e) {
+            // SecureTokenManager not initialized yet - that's ok, it will be handled
+            android.util.Log.d("LoginActivity", "SecureTokenManager not yet available");
         }
     }
 
@@ -70,14 +75,18 @@ public class LoginActivity extends AppCompatActivity {
         AuthenticationService.login(username, password, new AuthenticationService.LoginCallback() {
             @Override
             public void onSuccess(String token) {
-                // Save session
-                SessionManager.getInstance().saveSession(username, token);
+                try {
+                    // Save session
+                    SessionManager.getInstance().saveSession(username, token);
 
-                // Save username if checkbox is checked
-                if (rememberUsernameCheckbox.isChecked()) {
-                    SecureTokenManager.getInstance().saveUsername(username);
-                } else {
-                    SecureTokenManager.getInstance().deleteUsername();
+                    // Save username if checkbox is checked
+                    if (rememberUsernameCheckbox.isChecked()) {
+                        SecureTokenManager.getInstance().saveUsername(username);
+                    } else {
+                        SecureTokenManager.getInstance().deleteUsername();
+                    }
+                } catch (RuntimeException e) {
+                    android.util.Log.e("LoginActivity", "Error saving session: " + e.getMessage());
                 }
 
                 // Navigate to MainActivity
