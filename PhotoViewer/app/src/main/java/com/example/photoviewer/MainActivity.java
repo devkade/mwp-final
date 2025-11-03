@@ -64,7 +64,10 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap currentEditImage;
     private int postIdToShowAfterRefresh = -1;
 
-    private final String site_url = "http://10.0.2.2:8000/";
+    // API URL automatically switches based on build type:
+    // - Debug builds: http://10.0.2.2:8000/ (localhost via emulator)
+    // - Release builds: https://mouseku.pythonanywhere.com/
+    private final String site_url = BuildConfig.API_BASE_URL;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 

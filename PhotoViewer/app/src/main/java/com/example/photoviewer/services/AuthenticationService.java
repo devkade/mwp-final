@@ -1,6 +1,7 @@
 package com.example.photoviewer.services;
 
 import android.util.Log;
+import com.example.photoviewer.BuildConfig;
 import org.json.JSONObject;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -8,7 +9,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class AuthenticationService {
-    private static final String API_BASE_URL = "http://10.0.2.2:8000";
+    // API URL automatically switches based on build type:
+    // - Debug builds: http://10.0.2.2:8000 (localhost via emulator)
+    // - Release builds: https://mouseku.pythonanywhere.com
+    private static final String API_BASE_URL = BuildConfig.API_BASE_URL.replaceAll("/$", "");
     private static final String LOGIN_ENDPOINT = "/api/auth/login/";
     private static final String TAG = "AuthenticationService";
 

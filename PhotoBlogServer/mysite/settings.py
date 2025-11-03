@@ -28,6 +28,17 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", "10.0.2.2", ".pythonanywhere.com"]
 
+# Site URL Configuration - automatically detects localhost vs PythonAnywhere
+import socket
+hostname = socket.gethostname()
+
+if 'pythonanywhere' in hostname.lower() or os.environ.get('PYTHONANYWHERE_DOMAIN'):
+    # Running on PythonAnywhere
+    SITE_URL = "https://mouseku.pythonanywhere.com"
+else:
+    # Running on localhost
+    SITE_URL = "http://127.0.0.1:8000"
+
 
 # Application definition
 

@@ -16,16 +16,42 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Default API URL for debug builds (localhost via Android emulator)
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000/\"")
     }
 
     buildTypes {
+        debug {
+            // Development: localhost via Android emulator
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000/\"")
+        }
+        create("staging") {
+            // Testing: PythonAnywhere (debuggable)
+            initWith(getByName("debug"))
+            buildConfigField("String", "API_BASE_URL", "\"https://mouseku.pythonanywhere.com/\"")
+            applicationIdSuffix = ".staging"
+            isDebuggable = true
+        }
         release {
+            // Production: PythonAnywhere
+            buildConfigField("String", "API_BASE_URL", "\"https://mouseku.pythonanywhere.com/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
