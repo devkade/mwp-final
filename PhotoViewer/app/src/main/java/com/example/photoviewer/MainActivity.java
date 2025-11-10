@@ -1,10 +1,13 @@
 package com.example.photoviewer;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -27,6 +30,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.example.photoviewer.services.SessionManager;
 import com.example.photoviewer.utils.SecureTokenManager;
+import com.example.photoviewer.utils.SyncPreferences;
+import com.example.photoviewer.utils.NotificationHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int REQUEST_CODE_EDIT_IMAGE = 103;
+    private static final int REQUEST_CODE_NOTIFICATION_PERMISSION = 104;
 
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -70,6 +76,21 @@ public class MainActivity extends AppCompatActivity {
     private final String site_url = BuildConfig.API_BASE_URL;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    // Sync and notification helpers
+    private SyncPreferences syncPrefs;
+    private NotificationHelper notificationHelper;
+
+    // Foreground polling
+    private final Handler syncHandler = new Handler(Looper.getMainLooper());
+    private final Runnable syncRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "Foreground polling: checking for new posts");
+            checkForNewPosts(true); // true = show notification even when app is active
+            syncHandler.postDelayed(this, 30000); // 30 seconds
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,8 +129,54 @@ public class MainActivity extends AppCompatActivity {
             onClickDownload(null);
         });
 
+        // Initialize sync and notification helpers
+        syncPrefs = new SyncPreferences(this);
+        notificationHelper = new NotificationHelper(this);
+
+        // Request notification permission (Android 13+)
+        requestNotificationPermission();
+
         // Add logout button to toolbar
         addLogoutButton();
+
+        // Auto-sync on login
+        Log.d(TAG, "Auto-syncing on login");
+        onClickDownload(null);
+    }
+
+    /**
+     * Request notification permission for Android 13+ (API 33+)
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Requesting notification permission");
+                requestPermissions(
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    REQUEST_CODE_NOTIFICATION_PERMISSION
+                );
+            } else {
+                Log.d(TAG, "Notification permission already granted");
+            }
+        } else {
+            Log.d(TAG, "Notification permission not required (API < 33)");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_NOTIFICATION_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Notification permission granted");
+                Toast.makeText(this, "알림 권한이 허용되었습니다", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.d(TAG, "Notification permission denied");
+                Toast.makeText(this, "알림 권한이 거부되었습니다. 설정에서 허용해주세요.",
+                    Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void addLogoutButton() {
@@ -124,10 +191,27 @@ public class MainActivity extends AppCompatActivity {
 
     private void logout() {
         SessionManager.getInstance().logout();
+        syncPrefs.clear(); // Clear sync preferences on logout
         Intent intent = new Intent(MainActivity.this, SplashActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume - starting foreground polling");
+        // Start foreground polling (30 second interval)
+        syncHandler.postDelayed(syncRunnable, 30000);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause - stopping foreground polling");
+        // Stop foreground polling when app goes to background
+        syncHandler.removeCallbacks(syncRunnable);
     }
 
     public void onClickDownload(View v) {
@@ -217,6 +301,29 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!downloadedPosts.isEmpty()) {
                     Log.d(TAG, "Updating RecyclerView with " + downloadedPosts.size() + " posts");
+
+                    // Check for new posts
+                    int lastSeenId = syncPrefs.getLastSeenPostId();
+                    int maxId = 0;
+                    int newPostCount = 0;
+                    String firstNewObjectName = null;
+
+                    for (Post post : downloadedPosts) {
+                        int postId = post.getId();
+                        if (postId > maxId) {
+                            maxId = postId;
+                        }
+                        if (postId > lastSeenId) {
+                            newPostCount++;
+                            if (firstNewObjectName == null) {
+                                firstNewObjectName = post.getTitle();
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "lastSeenId=" + lastSeenId + ", maxId=" + maxId + ", newPostCount=" + newPostCount);
+
+                    // Update UI
                     postList.clear();
                     postList.addAll(downloadedPosts);
                     imageAdapter.notifyDataSetChanged();
@@ -225,6 +332,12 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),
                         downloadedPosts.size() + "개의 포스트를 불러왔습니다.",
                         Toast.LENGTH_SHORT).show();
+
+                    // Update lastSeenPostId
+                    if (maxId > lastSeenId) {
+                        syncPrefs.setLastSeenPostId(maxId);
+                        Log.d(TAG, "Updated lastSeenPostId to " + maxId);
+                    }
 
                     // 저장 후 포스트 상세보기를 자동으로 표시해야 하는 경우
                     if (postIdToShowAfterRefresh > 0) {
@@ -391,7 +504,10 @@ public class MainActivity extends AppCompatActivity {
                 new AlertDialog.Builder(MainActivity.this)
                     .setTitle("포스트 삭제")
                     .setMessage("정말로 이 포스트를 삭제하시겠습니까?")
-                    .setPositiveButton("삭제", (d, w) -> deletePost(post))
+                    .setPositiveButton("삭제", (d, w) -> {
+                        editDialog.dismiss(); // Edit dialog 닫기
+                        deletePost(post);
+                    })
                     .setNegativeButton("취소", null)
                     .show();
             });
@@ -804,6 +920,76 @@ public class MainActivity extends AppCompatActivity {
                 if (conn != null) {
                     conn.disconnect();
                 }
+            }
+        });
+    }
+
+    /**
+     * Check for new posts without updating UI
+     * Used by foreground polling and background sync
+     * @param showNotification Whether to show notification for new posts
+     */
+    private void checkForNewPosts(boolean showNotification) {
+        executorService.execute(() -> {
+            try {
+                URL url = new URL(site_url + "api_root/Post/");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestProperty("Authorization", "Token " + SessionManager.getInstance().getToken());
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(2000);
+                conn.setReadTimeout(2000);
+
+                int responseCode = conn.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    InputStream is = conn.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+                    is.close();
+                    conn.disconnect();
+
+                    JSONArray aryJson = new JSONArray(result.toString());
+                    int lastSeenId = syncPrefs.getLastSeenPostId();
+                    int maxId = 0;
+                    int newPostCount = 0;
+                    String firstNewObjectName = null;
+
+                    for (int i = 0; i < aryJson.length(); i++) {
+                        JSONObject post_json = aryJson.getJSONObject(i);
+                        int id = post_json.optInt("id", -1);
+                        if (id > maxId) {
+                            maxId = id;
+                        }
+                        if (id > lastSeenId) {
+                            newPostCount++;
+                            if (firstNewObjectName == null) {
+                                firstNewObjectName = post_json.optString("title", "");
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "checkForNewPosts: lastSeenId=" + lastSeenId +
+                          ", maxId=" + maxId + ", newPostCount=" + newPostCount);
+
+                    if (newPostCount > 0) {
+                        if (showNotification) {
+                            // Show notification for new detections
+                            notificationHelper.showNewDetectionNotification(newPostCount, firstNewObjectName);
+                        }
+
+                        // Update lastSeenPostId
+                        syncPrefs.setLastSeenPostId(maxId);
+
+                        // Always trigger full sync to update UI
+                        mainHandler.post(() -> onClickDownload(null));
+                    }
+                }
+            } catch (IOException | JSONException e) {
+                Log.e(TAG, "Error in checkForNewPosts: " + e.getMessage());
+                e.printStackTrace();
             }
         });
     }

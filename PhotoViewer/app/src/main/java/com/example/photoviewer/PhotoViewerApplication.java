@@ -5,7 +5,15 @@ import android.app.Application;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
 import com.example.photoviewer.utils.SecureTokenManager;
+import com.example.photoviewer.workers.BackgroundSyncWorker;
+
+import java.util.concurrent.TimeUnit;
 
 public class PhotoViewerApplication extends Application {
     private static final String TAG = "PhotoViewerApplication";
@@ -51,6 +59,9 @@ public class PhotoViewerApplication extends Application {
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize SecureTokenManager", e);
         }
+
+        // Initialize background sync with WorkManager
+        setupBackgroundSync();
 
         // Register ActivityLifecycleCallbacks to track app lifecycle
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
@@ -116,6 +127,38 @@ public class PhotoViewerApplication extends Application {
                 Log.d(TAG, "onActivityDestroyed: " + activity.getClass().getSimpleName());
             }
         });
+    }
+
+    /**
+     * Setup background sync with WorkManager
+     * Runs periodic checks every 15 minutes for new posts
+     */
+    private void setupBackgroundSync() {
+        Log.d(TAG, "Setting up background sync worker");
+
+        // Create constraints: only run when network is available
+        Constraints constraints = new Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build();
+
+        // Create periodic work request (15 minute interval)
+        PeriodicWorkRequest syncWorkRequest = new PeriodicWorkRequest.Builder(
+            BackgroundSyncWorker.class,
+            15, // repeatInterval
+            TimeUnit.MINUTES
+        )
+        .setConstraints(constraints)
+        .build();
+
+        // Enqueue work (replace existing with same tag)
+        WorkManager.getInstance(this)
+            .enqueueUniquePeriodicWork(
+                "BackgroundSync",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                syncWorkRequest
+            );
+
+        Log.d(TAG, "Background sync worker scheduled (15 minute interval)");
     }
 
 }
