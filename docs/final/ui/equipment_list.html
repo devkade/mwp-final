@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gym Equipment Monitor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#12c0e2",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#101f22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative min-h-screen">
+<div class="flex flex-col">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+<div class="flex items-center p-4">
+<button class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-900 dark:text-white">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+<h1 class="flex-1 text-center text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Equipment</h1>
+<button class="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full text-zinc-900 dark:text-white">
+<span class="material-symbols-outlined text-2xl">tune</span>
+</button>
+</div>
+</header>
+<main class="flex flex-col gap-4 p-4 pb-28">
+<!-- Search Bar -->
+<div>
+<label class="flex h-12 w-full flex-col">
+<div class="flex h-full w-full flex-1 items-stretch rounded-xl">
+<div class="flex items-center justify-center rounded-l-xl border-y border-l border-zinc-200 bg-white pl-4 text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+<span class="material-symbols-outlined text-2xl">search</span>
+</div>
+<input class="form-input h-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl border border-l-0 border-zinc-200 bg-white px-4 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-500 focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-400" placeholder="Search by name or ID..." value=""/>
+</div>
+</label>
+</div>
+<!-- Chips -->
+<div class="flex gap-3 overflow-x-auto pb-2">
+<div class="flex h-8 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-full bg-primary pl-4 pr-4">
+<p class="text-sm font-medium leading-normal text-white">All</p>
+</div>
+<div class="flex h-8 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-full bg-zinc-200 pl-4 pr-4 dark:bg-zinc-800">
+<p class="text-sm font-medium leading-normal text-zinc-700 dark:text-zinc-300">Cardio Area</p>
+</div>
+<div class="flex h-8 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-full bg-zinc-200 pl-4 pr-4 dark:bg-zinc-800">
+<p class="text-sm font-medium leading-normal text-zinc-700 dark:text-zinc-300">Weight Room</p>
+</div>
+<div class="flex h-8 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-full bg-zinc-200 pl-4 pr-4 dark:bg-zinc-800">
+<p class="text-sm font-medium leading-normal text-zinc-700 dark:text-zinc-300">Functional</p>
+</div>
+</div>
+<!-- Equipment List -->
+<div class="flex flex-col gap-3">
+<!-- List Item 1 -->
+<div class="flex cursor-pointer items-center gap-4 rounded-xl bg-white p-3 shadow-sm transition-all hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/50">
+<div class="aspect-square size-[70px] shrink-0 rounded-lg bg-cover bg-center bg-no-repeat" data-alt="Treadmill TR5000 machine" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAfAQPXRHR60RB5VugSqbqydWC_2cmQuMA2z2GSA1txmqpahvBm39Xb0FfN8CMPfrcM9WVwegPy42lE58EiT1kavXcEZBzuXhOdrbPSMIwstWkJ0-UAxa2MzJii9nF1JrCJ7FEWYbT0pAvvIv2mt-4YmSJQ5tmQbu04jNh5O3v4YGPtq-EGvCLlC5vjI-NmzweAk1To1-YIi4QKNZDiHFtQRabxC3tA2TKWu_ySx9ipQ7Qdrm2FLaIFnp3btascOBMN8RnZhj_8uQkj');"></div>
+<div class="flex flex-1 flex-col justify-center gap-0.5">
+<p class="text-base font-medium leading-normal text-zinc-900 dark:text-white">Treadmill TR5000</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">ProForm Commercial Treadmill</p>
+<p class="text-sm font-normal leading-normal text-zinc-500 dark:text-zinc-500">Cardio Area</p>
+</div>
+<div class="flex shrink-0 items-center justify-center gap-1.5">
+<div class="size-3 rounded-full bg-green-500"></div>
+<span class="text-sm text-zinc-600 dark:text-zinc-400">In Use</span>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="flex cursor-pointer items-center gap-4 rounded-xl bg-white p-3 shadow-sm transition-all hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/50">
+<div class="aspect-square size-[70px] shrink-0 rounded-lg bg-cover bg-center bg-no-repeat" data-alt="Leg press machine" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBhdyrcz_uXB0h2kOTLspBHq5LpgjTl5O3U4ynjrRZDS6lW3jGQh6x3WMlIaa-55M9tNaef7_s3TmTUJhsduTqKf8hjQFaXCZ51r_Zprb6nfB_900fHFRrnGR69FiLtaDe6syeaYTLSIg0rAdT3ALkXZmlbNc4sZ8XqLblK3WMIAX5JpWFi65w-8ykPZN_64505h-hGtQc7OHoW5mKszPGK4q5eHyFe8taluZirC-8hGzmHA0hj4lcr-DfQypVshv2cPTV-MIc8PFEU');"></div>
+<div class="flex flex-1 flex-col justify-center gap-0.5">
+<p class="text-base font-medium leading-normal text-zinc-900 dark:text-white">Leg Press Machine</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">Seated leg press, 400lb max</p>
+<p class="text-sm font-normal leading-normal text-zinc-500 dark:text-zinc-500">Weight Room - Floor 2</p>
+</div>
+<div class="flex shrink-0 items-center justify-center gap-1.5">
+<div class="size-3 rounded-full bg-zinc-400 dark:bg-zinc-600"></div>
+<span class="text-sm text-zinc-600 dark:text-zinc-400">Available</span>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="flex cursor-pointer items-center gap-4 rounded-xl bg-white p-3 shadow-sm transition-all hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/50">
+<div class="aspect-square size-[70px] shrink-0 rounded-lg bg-cover bg-center bg-no-repeat" data-alt="Rack of dumbbells" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAV4hS2xf4aZRrDiXXQqugA-CDt_BKiUAhjnpPWyje9PrM56k2yfyLO1eH9gg8GAsPvoVqUTVYQiJlLX1hror-5bD_L-4RYAEuYWl6tSMAtVCVKB3Y2YE1rCpdbvrcOofkR_GjlniuhRYwopDNhUHWJ7Wmy86y-186sT9-ve0PBWsiXrhzseChAF_WwLODI7uL-9QWywg3ZkwGVwyXF1sxrVQYStPVAblHAQTO7fTddRn-Ffh0VGE6n4tTh85-Fu4pnLUWw-djqDOFX');"></div>
+<div class="flex flex-1 flex-col justify-center gap-0.5">
+<p class="text-base font-medium leading-normal text-zinc-900 dark:text-white">Dumbbell Rack</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">5-50 lbs, rubber hex</p>
+<p class="text-sm font-normal leading-normal text-zinc-500 dark:text-zinc-500">Weight Room - Floor 1</p>
+</div>
+<div class="flex shrink-0 items-center justify-center gap-1.5">
+<div class="size-3 rounded-full bg-zinc-400 dark:bg-zinc-600"></div>
+<span class="text-sm text-zinc-600 dark:text-zinc-400">Available</span>
+</div>
+</div>
+<!-- List Item 4 -->
+<div class="flex cursor-pointer items-center gap-4 rounded-xl bg-white p-3 shadow-sm transition-all hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/50">
+<div class="aspect-square size-[70px] shrink-0 rounded-lg bg-cover bg-center bg-no-repeat" data-alt="Row of stationary bikes" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD1gcu2e6Act0FmgJb2Tr8SnFS24wq2UfZlHjbvXl0DHu8mcu4Mb9-a1nAoD5K5QHKFRttJiMgjRuMm4VSYVXE2CZfeG7ntUI364Cbp3PLqcUv1RXmcbg4ZYakey_wG7-JtroCfMGJHf60DhgAKYabjxK78J9xoRdw2Ifo507Hz4KhtVVTjjliULzyCgeevi-nHmuJBXu_LcJCTvNnboFO1EuEDIaGii337xDokebnrJALG3c1NTfNtWDbRsWw_M6G0QslQ_wzeLY8r');"></div>
+<div class="flex flex-1 flex-col justify-center gap-0.5">
+<p class="text-base font-medium leading-normal text-zinc-900 dark:text-white">Stationary Bike C5</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">Upright cycle with display</p>
+<p class="text-sm font-normal leading-normal text-zinc-500 dark:text-zinc-500">Cardio Area</p>
+</div>
+<div class="flex shrink-0 items-center justify-center gap-1.5">
+<div class="size-3 rounded-full bg-red-500"></div>
+<span class="text-sm text-zinc-600 dark:text-zinc-400">Maintenance</span>
+</div>
+</div>
+<!-- List Item 5 -->
+<div class="flex cursor-pointer items-center gap-4 rounded-xl bg-white p-3 shadow-sm transition-all hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/50">
+<div class="aspect-square size-[70px] shrink-0 rounded-lg bg-cover bg-center bg-no-repeat" data-alt="Bench press station" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCRxgMrMdJF-Tjz5ysO1vSkgtqV3o2BPXp4FDo4QXS0-sj_675U7Pe-h_jBePq6BiRlqIjKP2_Sn4FGZ53R1ri-40xHLomQ6MwXm2Z0Q2LJdC5CBIlN4DvacW-px1bzI9DY3LIg_A5U3WDcljbevUTWEZgLUL35sRvnea1o9SbnlnraFRrhdi-1__NXr_4PbFLK2QaSrGF8nLqCzj_bE0gtyG4Hak_cIwRCQbn7J6QFJKErKNGWfZ-sIVPFuWjL1zNBAhmDVxIUBz_X');"></div>
+<div class="flex flex-1 flex-col justify-center gap-0.5">
+<p class="text-base font-medium leading-normal text-zinc-900 dark:text-white">Flat Bench Press</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">Olympic bar included</p>
+<p class="text-sm font-normal leading-normal text-zinc-500 dark:text-zinc-500">Weight Room - Floor 2</p>
+</div>
+<div class="flex shrink-0 items-center justify-center gap-1.5">
+<div class="size-3 rounded-full bg-zinc-400 dark:bg-zinc-600"></div>
+<span class="text-sm text-zinc-600 dark:text-zinc-400">Available</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Button -->
+<div class="fixed bottom-6 right-6 z-20">
+<button class="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-105">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+</div>
+</body></html>
