@@ -13,6 +13,7 @@ public class SecureTokenManager {
     private static final String PREFS_NAME = "auth_prefs";
     private static final String TOKEN_KEY = "auth_token";
     private static final String USERNAME_KEY = "remembered_username";
+    private static final String SECURITY_KEY = "security_key";
     private static final String LAST_ACTIVE_TIME_KEY = "last_active_time";
     // NOTE: session_active is now stored in PhotoViewerApplication (volatile memory)
 
@@ -74,6 +75,23 @@ public class SecureTokenManager {
         encryptedPrefs.edit().remove(USERNAME_KEY).apply();
     }
 
+    // Security key storage methods for gym authentication
+    public void saveSecurityKey(String securityKey) {
+        encryptedPrefs.edit().putString(SECURITY_KEY, securityKey).apply();
+    }
+
+    public String getSecurityKey() {
+        return encryptedPrefs.getString(SECURITY_KEY, null);
+    }
+
+    public boolean hasSecurityKey() {
+        return getSecurityKey() != null;
+    }
+
+    public void deleteSecurityKey() {
+        encryptedPrefs.edit().remove(SECURITY_KEY).apply();
+    }
+
     public void clearAll() {
         encryptedPrefs.edit().clear().apply();
     }
@@ -100,11 +118,12 @@ public class SecureTokenManager {
         Log.d(TAG, "Before clear - last_active_time: " + getLastActiveTime());
         Log.d(TAG, "Before clear - has token: " + hasToken());
 
-        // Clear all session data (token, username, and timestamps)
+        // Clear all session data (token, username, security key, and timestamps)
         // NOTE: session_active is in PhotoViewerApplication (volatile), no need to clear
         encryptedPrefs.edit()
                 .remove(TOKEN_KEY)
                 .remove(USERNAME_KEY)
+                .remove(SECURITY_KEY)
                 .remove(LAST_ACTIVE_TIME_KEY)
                 .apply();
 

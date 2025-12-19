@@ -26,8 +26,12 @@ public class SessionManager {
         return SecureTokenManager.getInstance().getUsername();
     }
 
-    public void saveSession(String username, String token) {
-        SecureTokenManager.getInstance().saveUsername(username);
+    public String getSecurityKey() {
+        return SecureTokenManager.getInstance().getSecurityKey();
+    }
+
+    public void saveSession(String securityKey, String token) {
+        SecureTokenManager.getInstance().saveSecurityKey(securityKey);
         SecureTokenManager.getInstance().saveToken(token);
     }
 

@@ -2,8 +2,8 @@ package com.example.photoviewer;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,10 +13,10 @@ import com.example.photoviewer.services.SessionManager;
 import com.example.photoviewer.utils.SecureTokenManager;
 
 public class LoginActivity extends AppCompatActivity {
-    private EditText usernameInput;
-    private EditText passwordInput;
+    private static final String TAG = "LoginActivity";
+
+    private EditText securityKeyInput;
     private Button loginButton;
-    private CheckBox rememberUsernameCheckbox;
     private TextView errorMessage;
 
     @Override
@@ -25,29 +25,13 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         initializeViews();
-        loadRememberedUsername();
         setupLoginButton();
     }
 
     private void initializeViews() {
-        usernameInput = findViewById(R.id.username_input);
-        passwordInput = findViewById(R.id.password_input);
+        securityKeyInput = findViewById(R.id.security_key_input);
         loginButton = findViewById(R.id.login_button);
-        rememberUsernameCheckbox = findViewById(R.id.remember_username_checkbox);
         errorMessage = findViewById(R.id.error_message);
-    }
-
-    private void loadRememberedUsername() {
-        try {
-            String saved = SecureTokenManager.getInstance().getUsername();
-            if (saved != null && !saved.isEmpty()) {
-                usernameInput.setText(saved);
-                rememberUsernameCheckbox.setChecked(true);
-            }
-        } catch (RuntimeException e) {
-            // SecureTokenManager not initialized yet - that's ok, it will be handled
-            android.util.Log.d("LoginActivity", "SecureTokenManager not yet available");
-        }
     }
 
     private void setupLoginButton() {
@@ -55,53 +39,63 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void attemptLogin() {
-        String username = usernameInput.getText().toString().trim();
-        String password = passwordInput.getText().toString().trim();
+        String securityKey = securityKeyInput.getText().toString().trim();
 
         // Clear previous error
         errorMessage.setText("");
+        errorMessage.setVisibility(android.view.View.GONE);
 
-        // Validate input
-        if (username.isEmpty() || password.isEmpty()) {
-            showError("Username and password required");
+        // Validate input - AC #4: empty security key shows Korean error
+        if (securityKey.isEmpty()) {
+            showError("보안키를 입력하세요");
             return;
         }
 
         // Disable button to prevent multiple clicks
         loginButton.setEnabled(false);
-        loginButton.setText("Logging in...");
+        loginButton.setText("로그인 중...");
 
-        // Attempt login
-        AuthenticationService.login(username, password, new AuthenticationService.LoginCallback() {
+        // Attempt login with security key - AC #2
+        AuthenticationService.login(securityKey, new AuthenticationService.LoginCallback() {
             @Override
             public void onSuccess(String token) {
+                Log.d(TAG, "Login successful");
                 try {
-                    // Save session
-                    SessionManager.getInstance().saveSession(username, token);
-
-                    // Save username if checkbox is checked
-                    if (rememberUsernameCheckbox.isChecked()) {
-                        SecureTokenManager.getInstance().saveUsername(username);
-                    } else {
-                        SecureTokenManager.getInstance().deleteUsername();
-                    }
+                    // Save session with security key - AC #2: token stored securely
+                    SessionManager.getInstance().saveSession(securityKey, token);
                 } catch (RuntimeException e) {
-                    android.util.Log.e("LoginActivity", "Error saving session: " + e.getMessage());
+                    Log.e(TAG, "Error saving session: " + e.getMessage());
                 }
 
-                // Navigate to MainActivity
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish();
+                // Navigate to MachineListActivity - AC #2
+                runOnUiThread(() -> {
+                    Intent intent = new Intent(LoginActivity.this, MachineListActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                });
             }
 
             @Override
-            public void onError(String errorMessage) {
+            public void onError(String errorMsg) {
+                Log.d(TAG, "Login failed: " + errorMsg);
                 runOnUiThread(() -> {
-                    showError(errorMessage);
+                    // AC #3: Show Korean error message for invalid key
+                    // AC #6: Show Korean error message for network failure
+                    String displayMessage;
+                    if (errorMsg.contains("Invalid security key") || errorMsg.contains("401")) {
+                        displayMessage = "잘못된 보안키입니다";
+                    } else if (errorMsg.contains("Network error") || errorMsg.contains("timeout") ||
+                               errorMsg.contains("Unable to resolve host")) {
+                        displayMessage = "네트워크 오류가 발생했습니다";
+                    } else {
+                        displayMessage = "로그인 실패: " + errorMsg;
+                    }
+
+                    showError(displayMessage);
                     loginButton.setEnabled(true);
-                    loginButton.setText("Log In");
-                    passwordInput.setText(""); // Clear password on error
+                    loginButton.setText("로그인");
+                    securityKeyInput.setText(""); // Clear security key on error
                 });
             }
         });

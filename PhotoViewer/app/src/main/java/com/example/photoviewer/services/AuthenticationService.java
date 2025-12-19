@@ -21,8 +21,8 @@ public class AuthenticationService {
         void onError(String errorMessage);
     }
 
-    public static void login(String username, String password, LoginCallback callback) {
-        Log.d(TAG, "login() called with username: " + username);
+    public static void login(String securityKey, LoginCallback callback) {
+        Log.d(TAG, "login() called with security key: " + securityKey.substring(0, Math.min(8, securityKey.length())) + "...");
         new Thread(() -> {
             try {
                 Log.d(TAG, "Creating URL: " + API_BASE_URL + LOGIN_ENDPOINT);
@@ -36,11 +36,10 @@ public class AuthenticationService {
 
                 Log.d(TAG, "Connection opened, preparing request body");
 
-                // Create request body
+                // Create request body with security_key
                 JSONObject requestBody = new JSONObject();
-                requestBody.put("username", username);
-                requestBody.put("password", password);
-                Log.d(TAG, "Request body: " + requestBody.toString());
+                requestBody.put("security_key", securityKey);
+                Log.d(TAG, "Request body: {\"security_key\": \"***\"}");
 
                 // Send request
                 try (OutputStream os = conn.getOutputStream()) {
