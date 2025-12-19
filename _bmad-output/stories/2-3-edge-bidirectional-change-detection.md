@@ -1,6 +1,6 @@
 # Story 2.3: Edge Bidirectional Change Detection
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -24,40 +24,40 @@ so that **complete usage sessions are tracked automatically**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create ChangeDetection class structure (AC: #1, #2)
-  - [ ] 1.1: Create `yolov5/changedetection.py` file
-  - [ ] 1.2: Implement `__init__` method with names list and config dict
-  - [ ] 1.3: Initialize `result_prev` array to track previous frame counts
-  - [ ] 1.4: Initialize TARGET_CLASS from config (default: "person")
+- [x] Task 1: Create ChangeDetection class structure (AC: #1, #2)
+  - [x] 1.1: Create `yolov5/changedetection.py` file
+  - [x] 1.2: Implement `__init__` method with names list and config dict
+  - [x] 1.3: Initialize `result_prev` array to track previous frame counts
+  - [x] 1.4: Initialize TARGET_CLASS from config (default: "person")
 
-- [ ] Task 2: Implement bidirectional change detection logic (AC: #1, #2, #3, #4)
-  - [ ] 2.1: Implement `detect_changes(names, detected_current, image, detections_raw)` method
-  - [ ] 2.2: Get target class index from names list
-  - [ ] 2.3: Compare prev_count vs curr_count for target class
-  - [ ] 2.4: Trigger "start" event when prev=0 and curr>=1
-  - [ ] 2.5: Trigger "end" event when prev>=1 and curr=0
-  - [ ] 2.6: Update result_prev after each detection
-  - [ ] 2.7: Return None when no state change (1→2, 0→0, etc.)
+- [x] Task 2: Implement bidirectional change detection logic (AC: #1, #2, #3, #4)
+  - [x] 2.1: Implement `detect_changes(names, detected_current, image, detections_raw)` method
+  - [x] 2.2: Get target class index from names list
+  - [x] 2.3: Compare prev_count vs curr_count for target class
+  - [x] 2.4: Trigger "start" event when prev=0 and curr>=1
+  - [x] 2.5: Trigger "end" event when prev>=1 and curr=0
+  - [x] 2.6: Update result_prev after each detection
+  - [x] 2.7: Return None when no state change (1→2, 0→0, etc.)
 
-- [ ] Task 3: Generate change_info JSON (AC: #5)
-  - [ ] 3.1: Create change_info dict with event_type, target_class, prev_count, curr_count
-  - [ ] 3.2: Add ISO format timestamp using datetime.now().isoformat()
-  - [ ] 3.3: Return change_info from detect_changes when event triggered
+- [x] Task 3: Generate change_info JSON (AC: #5)
+  - [x] 3.1: Create change_info dict with event_type, target_class, prev_count, curr_count
+  - [x] 3.2: Add ISO format timestamp using datetime.now().isoformat()
+  - [x] 3.3: Return change_info from detect_changes when event triggered
 
-- [ ] Task 4: Implement image capture and save (AC: #6)
-  - [ ] 4.1: Create `runs/detect/events/` directory if not exists
-  - [ ] 4.2: Resize image to 640x480 using cv2.resize with INTER_AREA
-  - [ ] 4.3: Generate filename with timestamp and event_type
-  - [ ] 4.4: Save image as JPEG to the events directory
+- [x] Task 4: Implement image capture and save (AC: #6)
+  - [x] 4.1: Create `runs/detect/events/` directory if not exists
+  - [x] 4.2: Resize image to 640x480 using cv2.resize with INTER_AREA
+  - [x] 4.3: Generate filename with timestamp and event_type
+  - [x] 4.4: Save image as JPEG to the events directory
 
-- [ ] Task 5: Write unit tests for ChangeDetection (AC: #1-#6)
-  - [ ] 5.1: Create `yolov5/tests/test_changedetection.py`
-  - [ ] 5.2: Test start event triggered on 0→1 transition
-  - [ ] 5.3: Test end event triggered on 1→0 transition
-  - [ ] 5.4: Test no event on 1→2 transition
-  - [ ] 5.5: Test no event on 0→0 (no change)
-  - [ ] 5.6: Test change_info contains all required fields
-  - [ ] 5.7: Test image saved to correct directory with correct size
+- [x] Task 5: Write unit tests for ChangeDetection (AC: #1-#6)
+  - [x] 5.1: Create `yolov5/tests/test_changedetection.py`
+  - [x] 5.2: Test start event triggered on 0→1 transition
+  - [x] 5.3: Test end event triggered on 1→0 transition
+  - [x] 5.4: Test no event on 1→2 transition
+  - [x] 5.5: Test no event on 0→0 (no change)
+  - [x] 5.6: Test change_info contains all required fields
+  - [x] 5.7: Test image saved to correct directory with correct size
 
 ## Dev Notes
 
@@ -158,27 +158,34 @@ python -m pytest tests/test_changedetection.py -v
 
 ### Agent Model Used
 
-(To be filled after implementation)
+Claude (via Claude Code CLI)
 
 ### Debug Log References
 
-(To be filled during implementation)
+- Commit `1e53fd1`: feat(edge): implement bidirectional change detection (Story 2.3)
+- Commit `444d0e2`: Merge branch 'feat/story2.3' - Edge bidirectional change detection
 
 ### Completion Notes List
 
-(To be filled after implementation)
+- Implemented ChangeDetection class with bidirectional detection (0→1+ start, 1+→0 end)
+- 18 unit test cases covering all acceptance criteria
+- Image save functionality with 640x480 resize and timestamp-based filenames
+- All tests passing
 
 ### File List
 
 **Created:**
-(To be filled after implementation)
+- `yolov5/changedetection.py` (108 lines)
+- `yolov5/tests/__init__.py`
+- `yolov5/tests/test_changedetection.py` (347 lines)
 
 **Modified:**
-(To be filled after implementation)
+(None)
 
 **Deleted:**
-(None expected)
+(None)
 
 ## Change Log
 
 - 2025-12-19: Story created with comprehensive context from implementation specs
+- 2025-12-19: Implementation completed and merged to main
