@@ -69,7 +69,8 @@ dependencies {
     implementation("androidx.work:work-runtime:2.9.0")
     implementation(libs.mpandroidchart)
     testImplementation(libs.junit)
-    testImplementation("org.mockito:mockito-core:5.2.0")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("org.json:json:20240303")
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 }
