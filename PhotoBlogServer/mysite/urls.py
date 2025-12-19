@@ -24,6 +24,7 @@ from blog import views
 from rest_framework import routers
 router = routers.DefaultRouter()
 router.register('Post', views.BlogImages)
+router.register('machines', views.GymMachineViewSet)
 
 urlpatterns = [
     path('', views.post_list, name='post_list'),

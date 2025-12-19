@@ -1,14 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from .models import Post
+from .models import Post, ApiUser, GymMachine
 from .forms import PostForm
 from rest_framework import viewsets
-from .serializers import PostSerializer
+from .serializers import PostSerializer, GymMachineSerializer
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_200_OK
-from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 
 
@@ -51,42 +50,31 @@ def post_edit(request, pk):
 @permission_classes([AllowAny])
 def login(request):
     """
-    Authenticate user with username/password and return token
+    Authenticate user with security_key and return token
     """
-    import logging
-    logger = logging.getLogger(__name__)
+    security_key = request.data.get('security_key')
 
-    logger.info(f"Login request received. Content-Type: {request.content_type}")
-    logger.info(f"Request data: {request.data}")
-
-    username = request.data.get('username')
-    password = request.data.get('password')
-
-    logger.info(f"Username: {username}, Password: {'***' if password else 'None'}")
-
-    if not username or not password:
-        logger.warning(f"Missing credentials - username: {username}, password: {bool(password)}")
+    if not security_key:
         return Response(
-            {'error': 'Username and password required'},
+            {'error': 'security_key required'},
             status=HTTP_400_BAD_REQUEST
         )
 
-    user = authenticate(username=username, password=password)
-    logger.info(f"Authenticate result: {user}")
-
-    if user is None:
-        logger.warning(f"Authentication failed for username: {username}")
+    try:
+        api_user = ApiUser.objects.get(
+            security_key=security_key,
+            is_active=True
+        )
+        token, _ = Token.objects.get_or_create(user=api_user.user)
+        return Response({
+            'token': token.key,
+            'name': api_user.name
+        }, status=HTTP_200_OK)
+    except ApiUser.DoesNotExist:
         return Response(
-            {'error': 'Invalid credentials'},
+            {'error': 'Invalid security key'},
             status=HTTP_401_UNAUTHORIZED
         )
-
-    token, created = Token.objects.get_or_create(user=user)
-    logger.info(f"Login successful for {username}. Token: {token.key[:10]}...")
-    return Response(
-        {'token': token.key},
-        status=HTTP_200_OK
-    )
 
 class BlogImages(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -95,3 +83,10 @@ class BlogImages(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # 인증된 사용자를 author로 자동 설정하고 published_date도 설정
         serializer.save(author=self.request.user, published_date=timezone.now())
+
+
+class GymMachineViewSet(viewsets.ModelViewSet):
+    """운동기구 ViewSet"""
+    queryset = GymMachine.objects.filter(is_active=True)
+    serializer_class = GymMachineSerializer
+    permission_classes = [IsAuthenticated]
