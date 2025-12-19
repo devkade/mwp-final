@@ -3,6 +3,9 @@ from django.utils import timezone
 from .models import Post, ApiUser, GymMachine, MachineEvent
 from .forms import PostForm
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from django.db.models import Count
+from django.db.models.functions import TruncDate
 from .serializers import (
     PostSerializer, GymMachineSerializer,
     MachineEventSerializer, MachineEventListSerializer, MachineEventCreateSerializer
@@ -94,6 +97,34 @@ class GymMachineViewSet(viewsets.ModelViewSet):
     queryset = GymMachine.objects.filter(is_active=True)
     serializer_class = GymMachineSerializer
     permission_classes = [IsAuthenticated]
+
+    @action(detail=True, methods=['get'])
+    def stats(self, request, pk=None):
+        """기구별 통계"""
+        machine = self.get_object()
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+
+        events = machine.events.all()
+        if date_from:
+            events = events.filter(captured_at__date__gte=date_from)
+        if date_to:
+            events = events.filter(captured_at__date__lte=date_to)
+
+        # 일별 사용 횟수
+        daily_stats = events.filter(event_type='start').annotate(
+            date=TruncDate('captured_at')
+        ).values('date').annotate(
+            count=Count('id')
+        ).order_by('date')
+
+        return Response({
+            'machine_id': machine.id,
+            'machine_name': machine.name,
+            'total_starts': events.filter(event_type='start').count(),
+            'total_ends': events.filter(event_type='end').count(),
+            'daily_usage': list(daily_stats)
+        })
 
 
 class MachineEventViewSet(viewsets.ModelViewSet):

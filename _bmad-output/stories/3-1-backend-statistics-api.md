@@ -1,6 +1,6 @@
 # Story 3.1: Backend Statistics API
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -24,36 +24,36 @@ so that **I can analyze usage patterns and make operational decisions**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add stats action to GymMachineViewSet (AC: #1, #2)
-  - [ ] 1.1: Add `@action(detail=True, methods=['get'])` decorator for stats method
-  - [ ] 1.2: Implement basic stats query returning machine_id, machine_name
-  - [ ] 1.3: Add total_starts count (filter event_type='start')
-  - [ ] 1.4: Add total_ends count (filter event_type='end')
+- [x] Task 1: Add stats action to GymMachineViewSet (AC: #1, #2)
+  - [x] 1.1: Add `@action(detail=True, methods=['get'])` decorator for stats method
+  - [x] 1.2: Implement basic stats query returning machine_id, machine_name
+  - [x] 1.3: Add total_starts count (filter event_type='start')
+  - [x] 1.4: Add total_ends count (filter event_type='end')
 
-- [ ] Task 2: Implement daily_usage aggregation (AC: #4)
-  - [ ] 2.1: Use TruncDate to group events by date
-  - [ ] 2.2: Filter for start events only
-  - [ ] 2.3: Annotate with Count('id') for daily count
-  - [ ] 2.4: Order by date ascending
+- [x] Task 2: Implement daily_usage aggregation (AC: #4)
+  - [x] 2.1: Use TruncDate to group events by date
+  - [x] 2.2: Filter for start events only
+  - [x] 2.3: Annotate with Count('id') for daily count
+  - [x] 2.4: Order by date ascending
 
-- [ ] Task 3: Implement date range filtering (AC: #3)
-  - [ ] 3.1: Parse date_from query param and filter captured_at__date__gte
-  - [ ] 3.2: Parse date_to query param and filter captured_at__date__lte
-  - [ ] 3.3: Apply filters to all statistics calculations
+- [x] Task 3: Implement date range filtering (AC: #3)
+  - [x] 3.1: Parse date_from query param and filter captured_at__date__gte
+  - [x] 3.2: Parse date_to query param and filter captured_at__date__lte
+  - [x] 3.3: Apply filters to all statistics calculations
 
-- [ ] Task 4: Handle edge cases (AC: #5, #6)
-  - [ ] 4.1: Return empty results when no events exist (total_starts=0, total_ends=0, daily_usage=[])
-  - [ ] 4.2: Return HTTP 404 for non-existent machine_id (handled by get_object())
+- [x] Task 4: Handle edge cases (AC: #5, #6)
+  - [x] 4.1: Return empty results when no events exist (total_starts=0, total_ends=0, daily_usage=[])
+  - [x] 4.2: Return HTTP 404 for non-existent machine_id (handled by get_object())
 
-- [ ] Task 5: Write tests for statistics API (AC: #1-#6)
-  - [ ] 5.1: Create blog/tests/test_stats.py
-  - [ ] 5.2: Test stats endpoint returns 200 with valid token
-  - [ ] 5.3: Test response contains all required fields
-  - [ ] 5.4: Test date_from filter works correctly
-  - [ ] 5.5: Test date_to filter works correctly
-  - [ ] 5.6: Test combined date_from + date_to filter
-  - [ ] 5.7: Test empty results for machine with no events
-  - [ ] 5.8: Test 404 for non-existent machine
+- [x] Task 5: Write tests for statistics API (AC: #1-#6)
+  - [x] 5.1: Create blog/tests/test_stats.py
+  - [x] 5.2: Test stats endpoint returns 200 with valid token
+  - [x] 5.3: Test response contains all required fields
+  - [x] 5.4: Test date_from filter works correctly
+  - [x] 5.5: Test date_to filter works correctly
+  - [x] 5.6: Test combined date_from + date_to filter
+  - [x] 5.7: Test empty results for machine with no events
+  - [x] 5.8: Test 404 for non-existent machine
 
 ## Dev Notes
 
@@ -175,27 +175,32 @@ python manage.py test blog.tests.test_stats
 
 ### Agent Model Used
 
-(To be filled on implementation)
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
-(To be filled on implementation)
+N/A - Implementation completed without issues
 
 ### Completion Notes List
 
-(To be filled on implementation)
+- Added stats action to GymMachineViewSet with @action decorator
+- Implemented date range filtering with date_from/date_to query params
+- Implemented daily_usage aggregation using TruncDate and Count
+- All 13 test cases pass covering all acceptance criteria
+- Endpoint auto-registered at `/api_root/machines/{id}/stats/` via router
 
 ### File List
 
 **Created:**
-(To be filled on implementation)
+- `PhotoBlogServer/blog/tests/test_stats.py` - 13 test cases for stats API
 
 **Modified:**
-(To be filled on implementation)
+- `PhotoBlogServer/blog/views.py` - Added imports and stats action to GymMachineViewSet
 
 **Deleted:**
-(None expected)
+(None)
 
 ## Change Log
 
 - 2025-12-19: Story created with comprehensive context from implementation specs
+- 2025-12-19: Story implemented - stats action added with full test coverage
