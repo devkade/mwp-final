@@ -55,7 +55,7 @@ development_status:
   2-3-edge-bidirectional-change-detection: done
   2-4-edge-event-upload-integration: done
   2-5-android-event-list-screen: done
-  2-6-android-event-detail-screen: ready-for-dev
+  2-6-android-event-detail-screen: done
   epic-2-retrospective: optional
 
   # Epic 3: Usage Analytics & Statistics
