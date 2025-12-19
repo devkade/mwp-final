@@ -9,7 +9,7 @@
 host: https://mouseku.pythonanywhere.com
 
 # Security key for authentication (required for auth)
-security_key: ""
+security_key: "test123"
 
 # Target machine ID on the server
 machine_id: 1
