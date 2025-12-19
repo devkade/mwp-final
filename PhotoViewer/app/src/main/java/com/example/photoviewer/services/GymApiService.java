@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.photoviewer.BuildConfig;
 import com.example.photoviewer.models.GymMachine;
+import com.example.photoviewer.models.MachineEvent;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +29,7 @@ public class GymApiService {
     private static final String TAG = "GymApiService";
     private static final String API_BASE_URL = BuildConfig.API_BASE_URL.replaceAll("/$", "");
     private static final String MACHINES_ENDPOINT = "/api_root/machines/";
+    private static final String EVENTS_ENDPOINT_TEMPLATE = "/api/machines/%d/events/";
 
     private static GymApiService instance;
     private final ExecutorService executorService;
@@ -37,6 +39,14 @@ public class GymApiService {
      */
     public interface MachinesCallback {
         void onSuccess(List<GymMachine> machines);
+        void onError(String errorMessage);
+    }
+
+    /**
+     * Callback interface for events API calls
+     */
+    public interface EventsCallback {
+        void onSuccess(List<MachineEvent> events);
         void onError(String errorMessage);
     }
 
@@ -144,6 +154,110 @@ public class GymApiService {
     }
 
     /**
+     * Fetch events for a specific machine with optional filters
+     */
+    public void getMachineEvents(int machineId,
+                                 String eventType,
+                                 String dateFrom,
+                                 String dateTo,
+                                 EventsCallback callback) {
+        executorService.execute(() -> {
+            HttpURLConnection conn = null;
+            try {
+                String token = SessionManager.getInstance().getToken();
+                if (token == null || token.isEmpty()) {
+                    Log.e(TAG, "No auth token available");
+                    callback.onError(ERROR_UNAUTHORIZED);
+                    return;
+                }
+
+                String urlStr = buildEventsUrl(machineId, eventType, dateFrom, dateTo);
+                Log.d(TAG, "Fetching events from: " + urlStr);
+
+                URL url = new URL(urlStr);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Authorization", "Token " + token);
+                conn.setRequestProperty("Accept", "application/json");
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+
+                int responseCode = conn.getResponseCode();
+                Log.d(TAG, "Response code: " + responseCode);
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    StringBuilder response = new StringBuilder();
+                    try (BufferedReader br = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            response.append(line);
+                        }
+                    }
+
+                    List<MachineEvent> events = parseEventsResponse(response.toString());
+                    Log.d(TAG, "Successfully parsed " + events.size() + " events");
+                    callback.onSuccess(events);
+
+                } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    Log.e(TAG, "Unauthorized - token invalid or expired");
+                    SessionManager.getInstance().logout();
+                    callback.onError(ERROR_UNAUTHORIZED);
+
+                } else if (responseCode >= 500) {
+                    Log.e(TAG, "Server error: " + responseCode);
+                    callback.onError(ERROR_SERVER);
+
+                } else {
+                    Log.e(TAG, "API error: " + responseCode);
+                    callback.onError(ERROR_NETWORK);
+                }
+
+            } catch (java.net.UnknownHostException e) {
+                Log.e(TAG, "Network error - unknown host: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (java.net.SocketTimeoutException e) {
+                Log.e(TAG, "Network error - timeout: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (java.io.IOException e) {
+                Log.e(TAG, "Network error: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (JSONException e) {
+                Log.e(TAG, "JSON parsing error: " + e.getMessage());
+                callback.onError(ERROR_SERVER);
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        });
+    }
+
+    private String buildEventsUrl(int machineId, String eventType, String dateFrom, String dateTo) {
+        StringBuilder urlBuilder = new StringBuilder();
+        urlBuilder.append(API_BASE_URL);
+        urlBuilder.append(String.format(EVENTS_ENDPOINT_TEMPLATE, machineId));
+
+        boolean hasQuery = false;
+        if (eventType != null && !eventType.isEmpty()) {
+            urlBuilder.append(hasQuery ? "&" : "?");
+            urlBuilder.append("event_type=").append(eventType);
+            hasQuery = true;
+        }
+        if (dateFrom != null && !dateFrom.isEmpty()) {
+            urlBuilder.append(hasQuery ? "&" : "?");
+            urlBuilder.append("date_from=").append(dateFrom);
+            hasQuery = true;
+        }
+        if (dateTo != null && !dateTo.isEmpty()) {
+            urlBuilder.append(hasQuery ? "&" : "?");
+            urlBuilder.append("date_to=").append(dateTo);
+        }
+
+        return urlBuilder.toString();
+    }
+
+    /**
      * Parse JSON array response into list of GymMachine objects
      */
     private List<GymMachine> parseMachinesResponse(String jsonStr) throws JSONException {
@@ -156,5 +270,20 @@ public class GymApiService {
         }
 
         return machines;
+    }
+
+    /**
+     * Parse JSON array response into list of MachineEvent objects
+     */
+    private List<MachineEvent> parseEventsResponse(String jsonStr) throws JSONException {
+        List<MachineEvent> events = new ArrayList<>();
+        JSONArray jsonArray = new JSONArray(jsonStr);
+
+        for (int i = 0; i < jsonArray.length(); i++) {
+            MachineEvent event = new MachineEvent(jsonArray.getJSONObject(i));
+            events.add(event);
+        }
+
+        return events;
     }
 }

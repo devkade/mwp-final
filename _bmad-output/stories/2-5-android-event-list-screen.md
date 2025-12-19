@@ -30,69 +30,69 @@ so that **I can monitor when equipment was used and filter by event type**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create MachineEvent model class (AC: #1, #2)
-  - [ ] 1.1: Create `models/MachineEvent.java` with fields: id, machineId, machineName, eventType, eventTypeDisplay, imageUrl, capturedAt, personCount
-  - [ ] 1.2: Add getters and setters
-  - [ ] 1.3: Add JSON parsing constructor or use Gson
+- [x] Task 1: Create MachineEvent model class (AC: #1, #2)
+  - [x] 1.1: Create `models/MachineEvent.java` with fields: id, machineId, machineName, eventType, eventTypeDisplay, imageUrl, capturedAt, personCount
+  - [x] 1.2: Add getters and setters
+  - [x] 1.3: Add JSON parsing constructor or use Gson
 
-- [ ] Task 2: Create EventAdapter for RecyclerView (AC: #1, #2)
-  - [ ] 2.1: Create `adapters/EventAdapter.java` extending RecyclerView.Adapter
-  - [ ] 2.2: Create ViewHolder with thumbnail, event type chip, timestamp, person count
-  - [ ] 2.3: Implement onBindViewHolder to populate event data
-  - [ ] 2.4: Set chip color: green (#28A745) for START, red (#DC3545) for END
-  - [ ] 2.5: Format capturedAt timestamp to readable format
-  - [ ] 2.6: Implement click listener for item selection
+- [x] Task 2: Create EventAdapter for RecyclerView (AC: #1, #2)
+  - [x] 2.1: Create `adapters/EventAdapter.java` extending RecyclerView.Adapter
+  - [x] 2.2: Create ViewHolder with thumbnail, event type chip, timestamp, person count
+  - [x] 2.3: Implement onBindViewHolder to populate event data
+  - [x] 2.4: Set chip color: green (#28A745) for START, red (#DC3545) for END
+  - [x] 2.5: Format capturedAt timestamp to readable format
+  - [x] 2.6: Implement click listener for item selection
 
-- [ ] Task 3: Create item_event.xml layout (AC: #2)
-  - [ ] 3.1: Create MaterialCardView container
-  - [ ] 3.2: Add ImageView for thumbnail (100dp x 75dp, 4:3 ratio)
-  - [ ] 3.3: Add Chip for event type with color styling
-  - [ ] 3.4: Add TextView for capturedAt timestamp
-  - [ ] 3.5: Add TextView for person count
+- [x] Task 3: Create item_event.xml layout (AC: #2)
+  - [x] 3.1: Create MaterialCardView container
+  - [x] 3.2: Add ImageView for thumbnail (100dp x 75dp, 4:3 ratio)
+  - [x] 3.3: Add Chip for event type with color styling
+  - [x] 3.4: Add TextView for capturedAt timestamp
+  - [x] 3.5: Add TextView for person count
 
-- [ ] Task 4: Create EventListActivity (AC: #1, #3, #4, #5, #7, #8, #9)
-  - [ ] 4.1: Create `EventListActivity.java`
-  - [ ] 4.2: Get machine_id and machine_name from Intent extras
-  - [ ] 4.3: Set title to machine name
-  - [ ] 4.4: Initialize RecyclerView with LinearLayoutManager
-  - [ ] 4.5: Initialize EventAdapter with click listener
-  - [ ] 4.6: Implement loadEvents() method to fetch from API
-  - [ ] 4.7: Handle empty state visibility
+- [x] Task 4: Create EventListActivity (AC: #1, #3, #4, #5, #7, #8, #9)
+  - [x] 4.1: Create `EventListActivity.java`
+  - [x] 4.2: Get machine_id and machine_name from Intent extras
+  - [x] 4.3: Set title to machine name
+  - [x] 4.4: Initialize RecyclerView with LinearLayoutManager
+  - [x] 4.5: Initialize EventAdapter with click listener
+  - [x] 4.6: Implement loadEvents() method to fetch from API
+  - [x] 4.7: Handle empty state visibility
 
-- [ ] Task 5: Create activity_event_list.xml layout (AC: #3, #4, #5, #8, #9)
-  - [ ] 5.1: Add ChipGroup with filter chips: 전체, 사용 시작, 사용 종료
-  - [ ] 5.2: Add SwipeRefreshLayout wrapping RecyclerView
-  - [ ] 5.3: Add RecyclerView for event list
-  - [ ] 5.4: Add empty state layout (hidden by default)
-  - [ ] 5.5: Style chips with appropriate colors
+- [x] Task 5: Create activity_event_list.xml layout (AC: #3, #4, #5, #8, #9)
+  - [x] 5.1: Add ChipGroup with filter chips: 전체, 사용 시작, 사용 종료
+  - [x] 5.2: Add SwipeRefreshLayout wrapping RecyclerView
+  - [x] 5.3: Add RecyclerView for event list
+  - [x] 5.4: Add empty state layout (hidden by default)
+  - [x] 5.5: Style chips with appropriate colors
 
-- [ ] Task 6: Implement filter chip functionality (AC: #3, #4, #5)
-  - [ ] 6.1: Set up ChipGroup.OnCheckedChangeListener
-  - [ ] 6.2: Track filterEventType state (null, "start", "end")
-  - [ ] 6.3: Call loadEvents() when filter changes
-  - [ ] 6.4: Append ?event_type={filter} to API URL when filter active
+- [x] Task 6: Implement filter chip functionality (AC: #3, #4, #5)
+  - [x] 6.1: Set up ChipGroup.OnCheckedChangeListener
+  - [x] 6.2: Track filterEventType state (null, "start", "end")
+  - [x] 6.3: Call loadEvents() when filter changes
+  - [x] 6.4: Append ?event_type={filter} to API URL when filter active
 
-- [ ] Task 7: Implement date range filtering (AC: #6)
-  - [ ] 7.1: Add date range selector UI (button or date picker)
-  - [ ] 7.2: Show DatePickerDialog for date_from selection
-  - [ ] 7.3: Show DatePickerDialog for date_to selection
-  - [ ] 7.4: Append date_from and date_to query params to API URL
-  - [ ] 7.5: Display selected date range in UI
+- [x] Task 7: Implement date range filtering (AC: #6)
+  - [x] 7.1: Add date range selector UI (button or date picker)
+  - [x] 7.2: Show DatePickerDialog for date_from selection
+  - [x] 7.3: Show DatePickerDialog for date_to selection
+  - [x] 7.4: Append date_from and date_to query params to API URL
+  - [x] 7.5: Display selected date range in UI
 
-- [ ] Task 8: Implement pull-to-refresh (AC: #8)
-  - [ ] 8.1: Set SwipeRefreshLayout.OnRefreshListener
-  - [ ] 8.2: Call loadEvents() on refresh
-  - [ ] 8.3: Stop refresh animation when load complete
+- [x] Task 8: Implement pull-to-refresh (AC: #8)
+  - [x] 8.1: Set SwipeRefreshLayout.OnRefreshListener
+  - [x] 8.2: Call loadEvents() on refresh
+  - [x] 8.3: Stop refresh animation when load complete
 
-- [ ] Task 9: Navigate from Equipment List (AC: #1, #7)
-  - [ ] 9.1: Modify MachineListActivity item click to launch EventListActivity
-  - [ ] 9.2: Pass machine_id and machine_name in Intent
-  - [ ] 9.3: Handle EventListActivity item click to launch EventDetailActivity
-  - [ ] 9.4: Pass event_id in Intent
+- [x] Task 9: Navigate from Equipment List (AC: #1, #7)
+  - [x] 9.1: Modify MachineListActivity item click to launch EventListActivity
+  - [x] 9.2: Pass machine_id and machine_name in Intent
+  - [x] 9.3: Handle EventListActivity item click to launch EventDetailActivity
+  - [x] 9.4: Pass event_id in Intent
 
-- [ ] Task 10: Register Activity in AndroidManifest (AC: #1)
-  - [ ] 10.1: Add EventListActivity to AndroidManifest.xml
-  - [ ] 10.2: Set parent activity for up navigation
+- [x] Task 10: Register Activity in AndroidManifest (AC: #1)
+  - [x] 10.1: Add EventListActivity to AndroidManifest.xml
+  - [x] 10.2: Set parent activity for up navigation
 
 ## Dev Notes
 
@@ -199,9 +199,13 @@ cd PhotoViewer
 
 (To be filled after implementation)
 
+### Implementation Plan
+
+- Implement MachineEvent model with JSON parsing for event list fields and accessors.
+
 ### Debug Log References
 
-(To be filled during implementation)
+- 2025-12-19: `./gradlew test --tests com.example.photoviewer.MachineEventTest` failed (Java Runtime not found).
 
 ### Completion Notes List
 

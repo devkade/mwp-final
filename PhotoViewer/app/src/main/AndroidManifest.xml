@@ -46,6 +46,18 @@
             android:name=".EventPlaceholderActivity"
             android:exported="false"
             android:theme="@style/Theme.PhotoViewer" />
+
+        <activity
+            android:name=".EventListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PhotoViewer"
+            android:parentActivityName=".MachineListActivity" />
+
+        <activity
+            android:name=".EventDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PhotoViewer"
+            android:parentActivityName=".EventListActivity" />
     </application>
 
 </manifest>

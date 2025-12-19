@@ -144,13 +144,13 @@ public class MachineListActivity extends AppCompatActivity {
     }
 
     /**
-     * Handle machine item click - navigate to EventPlaceholderActivity
+     * Handle machine item click - navigate to EventListActivity
      */
     private void onMachineClicked(GymMachine machine) {
         Log.d(TAG, "Machine clicked: " + machine.getName());
-        Intent intent = new Intent(this, EventPlaceholderActivity.class);
-        intent.putExtra("machine_id", machine.getId());
-        intent.putExtra("machine_name", machine.getName());
+        Intent intent = new Intent(this, EventListActivity.class);
+        intent.putExtra(EventListActivity.EXTRA_MACHINE_ID, machine.getId());
+        intent.putExtra(EventListActivity.EXTRA_MACHINE_NAME, machine.getName());
         startActivity(intent);
     }
 
