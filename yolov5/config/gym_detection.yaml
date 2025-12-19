@@ -1,0 +1,18 @@
+# Gym Detection Configuration
+# Set via env vars to override these values:
+# - GYM_HOST
+# - GYM_SECURITY_KEY
+# - GYM_MACHINE_ID
+# - GYM_TARGET_CLASS
+
+# API host URL
+host: https://mouseku.pythonanywhere.com
+
+# Security key for authentication (required for auth)
+security_key: ""
+
+# Target machine ID on the server
+machine_id: 1
+
+# Detection target class name
+target_class: person

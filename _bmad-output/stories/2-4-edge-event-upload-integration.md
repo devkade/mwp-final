@@ -1,6 +1,6 @@
 # Story 2.4: Edge Event Upload Integration
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -26,49 +26,49 @@ so that **usage events are stored in the central system in real-time**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement authentication in ChangeDetection (AC: #1, #2)
-  - [ ] 1.1: Add HOST, SECURITY_KEY, MACHINE_ID to config initialization
-  - [ ] 1.2: Implement `_authenticate()` method
-  - [ ] 1.3: POST to `/api/auth/login/` with security_key
-  - [ ] 1.4: Store returned token in self.token
-  - [ ] 1.5: Log success message on successful auth
-  - [ ] 1.6: Raise exception on auth failure (invalid key)
-  - [ ] 1.7: Call `_authenticate()` in `__init__`
+- [x] Task 1: Implement authentication in ChangeDetection (AC: #1, #2)
+  - [x] 1.1: Add HOST, SECURITY_KEY, MACHINE_ID to config initialization
+  - [x] 1.2: Implement `_authenticate()` method
+  - [x] 1.3: POST to `/api/auth/login/` with security_key
+  - [x] 1.4: Store returned token in self.token
+  - [x] 1.5: Log success message on successful auth
+  - [x] 1.6: Raise exception on auth failure (invalid key)
+  - [x] 1.7: Call `_authenticate()` in `__init__`
 
-- [ ] Task 2: Implement event upload method (AC: #3, #4, #5)
-  - [ ] 2.1: Implement `_send_event(event_type, image, person_count, detections, change_info)` method
-  - [ ] 2.2: Construct multipart form data with image file
-  - [ ] 2.3: Include event_type, captured_at (ISO format), person_count
-  - [ ] 2.4: Include detections and change_info as JSON strings
-  - [ ] 2.5: Set Authorization header with Token
-  - [ ] 2.6: POST to `/api/machines/{machine_id}/events/`
-  - [ ] 2.7: Log success message on HTTP 201
-  - [ ] 2.8: Log error message on HTTP 4xx/5xx with status code
+- [x] Task 2: Implement event upload method (AC: #3, #4, #5)
+  - [x] 2.1: Implement `_send_event(event_type, image, person_count, detections, change_info)` method
+  - [x] 2.2: Construct multipart form data with image file
+  - [x] 2.3: Include event_type, captured_at (ISO format), person_count
+  - [x] 2.4: Include detections and change_info as JSON strings
+  - [x] 2.5: Set Authorization header with Token
+  - [x] 2.6: POST to `/api/machines/{machine_id}/events/`
+  - [x] 2.7: Log success message on HTTP 201
+  - [x] 2.8: Log error message on HTTP 4xx/5xx with status code
 
-- [ ] Task 3: Integrate with detect_changes method (AC: #3)
-  - [ ] 3.1: Call `_send_event()` when change detected
-  - [ ] 3.2: Pass current image, person_count, detections, change_info
-  - [ ] 3.3: Save image locally before upload (for retry/debugging)
+- [x] Task 3: Integrate with detect_changes method (AC: #3)
+  - [x] 3.1: Call `_send_event()` when change detected
+  - [x] 3.2: Pass current image, person_count, detections, change_info
+  - [x] 3.3: Save image locally before upload (for retry/debugging)
 
-- [ ] Task 4: Implement configuration loading (AC: #6, #7)
-  - [ ] 4.1: Create `yolov5/config/gym_detection.yaml` template
-  - [ ] 4.2: Support environment variables: GYM_HOST, GYM_SECURITY_KEY, GYM_MACHINE_ID
-  - [ ] 4.3: Set default host to https://mouseku.pythonanywhere.com
-  - [ ] 4.4: Document configuration options
+- [x] Task 4: Implement configuration loading (AC: #6, #7)
+  - [x] 4.1: Create `yolov5/config/gym_detection.yaml` template
+  - [x] 4.2: Support environment variables: GYM_HOST, GYM_SECURITY_KEY, GYM_MACHINE_ID
+  - [x] 4.3: Set default host to https://mouseku.pythonanywhere.com
+  - [x] 4.4: Document configuration options
 
-- [ ] Task 5: Modify detect.py integration (AC: #6, #7)
-  - [ ] 5.1: Import ChangeDetection class
-  - [ ] 5.2: Initialize with config from env vars
-  - [ ] 5.3: Call detect_changes in frame processing loop
-  - [ ] 5.4: Handle initialization errors gracefully
+- [x] Task 5: Modify detect.py integration (AC: #6, #7)
+  - [x] 5.1: Import ChangeDetection class
+  - [x] 5.2: Initialize with config from env vars
+  - [x] 5.3: Call detect_changes in frame processing loop
+  - [x] 5.4: Handle initialization errors gracefully
 
-- [ ] Task 6: Write integration tests (AC: #1-#5)
-  - [ ] 6.1: Test successful authentication stores token
-  - [ ] 6.2: Test failed authentication raises exception
-  - [ ] 6.3: Test event upload sends correct data format
-  - [ ] 6.4: Test success logging on 201 response
-  - [ ] 6.5: Test error logging on 4xx/5xx response
-  - [ ] 6.6: Mock server responses for isolated testing
+- [x] Task 6: Write integration tests (AC: #1-#5)
+  - [x] 6.1: Test successful authentication stores token
+  - [x] 6.2: Test failed authentication raises exception
+  - [x] 6.3: Test event upload sends correct data format
+  - [x] 6.4: Test success logging on 201 response
+  - [x] 6.5: Test error logging on 4xx/5xx response
+  - [x] 6.6: Mock server responses for isolated testing
 
 ## Dev Notes
 
@@ -193,23 +193,41 @@ python -m pytest tests/test_changedetection.py -v
 
 ### Agent Model Used
 
-(To be filled after implementation)
+GPT-5 (Codex)
+
+### Implementation Plan
+
+- Load config from YAML/env for host/security_key/machine_id/target_class
+- Authenticate on init when security_key provided; store token
+- Serialize detections, save event image, and POST multipart event payload
+- Wire ChangeDetection into detect loop and guard init failures
+- Add config template and tests for auth/upload/config
 
 ### Debug Log References
 
-(To be filled during implementation)
+- 2025-12-19: Implemented auth/event upload/config/detect integration and config template.
+- 2025-12-19: Tests run via `yolov5/venv/bin/python -m unittest discover -s yolov5/tests` (pass).
 
 ### Completion Notes List
 
-(To be filled after implementation)
+- Implemented ChangeDetection auth, event upload, config loading, and detect.py integration.
+- Added detection serialization and local image save path tracking.
+- Added config template and unit tests; unittest suite passes in yolov5 venv.
+- Code review fixes: handle GPU tensor conversion, accept 200/201 success, add request timeout/exception handling, and document config usage.
+- Note: repo has unrelated uncommitted changes (e.g., `.gitignore`, other story files, PhotoViewer files) not part of this story.
 
 ### File List
 
 **Created:**
-(To be filled after implementation)
+- yolov5/config/gym_detection.yaml
+- yolov5/config/README.md
 
 **Modified:**
-(To be filled after implementation)
+- yolov5/changedetection.py
+- yolov5/detect.py
+- yolov5/tests/test_changedetection.py
+- _bmad-output/sprint/sprint-status.yaml
+- _bmad-output/stories/2-4-edge-event-upload-integration.md
 
 **Deleted:**
 (None expected)
@@ -217,3 +235,5 @@ python -m pytest tests/test_changedetection.py -v
 ## Change Log
 
 - 2025-12-19: Story created with comprehensive context from implementation specs
+- 2025-12-19: Implemented edge auth/event upload integration and updated tests/config.
+- 2025-12-19: Applied code review fixes and documented config usage.

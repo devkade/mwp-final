@@ -5,8 +5,47 @@ Detects usage start (0→1+) and usage end (1+→0) events for a target class.
 """
 
 import cv2
+import json
+import os
 import pathlib
 from datetime import datetime
+
+import requests
+import yaml
+
+
+def load_gym_config(config_path=None, env=None):
+    """
+    Load configuration from YAML file and environment variables.
+
+    Args:
+        config_path: Optional path to YAML config.
+        env: Optional dict of environment variables for testing.
+    """
+    env = env if env is not None else os.environ
+    config = {}
+
+    if config_path:
+        config_path = pathlib.Path(config_path)
+        if config_path.exists():
+            with config_path.open('r', encoding='utf-8') as handle:
+                config = yaml.safe_load(handle) or {}
+
+    def _env_or_config(key, env_key, default=None, cast=None):
+        if env_key in env and env[env_key] != "":
+            value = env[env_key]
+        else:
+            value = config.get(key, default)
+        if cast and value is not None:
+            return cast(value)
+        return value
+
+    return {
+        'host': _env_or_config('host', 'GYM_HOST', 'https://mouseku.pythonanywhere.com'),
+        'security_key': _env_or_config('security_key', 'GYM_SECURITY_KEY'),
+        'machine_id': _env_or_config('machine_id', 'GYM_MACHINE_ID', 1, int),
+        'target_class': _env_or_config('target_class', 'GYM_TARGET_CLASS', 'person'),
+    }
 
 
 class ChangeDetection:
@@ -25,6 +64,13 @@ class ChangeDetection:
         self.result_prev = [0 for _ in range(len(names))]
         self.config = config or {}
         self.TARGET_CLASS = self.config.get('target_class', 'person')
+        self.HOST = self.config.get('host', 'https://mouseku.pythonanywhere.com')
+        self.SECURITY_KEY = self.config.get('security_key')
+        self.MACHINE_ID = self.config.get('machine_id', 1)
+        self.token = None
+
+        if self.SECURITY_KEY:
+            self._authenticate()
 
     def detect_changes(self, names, detected_current, image, detections_raw):
         """
@@ -74,11 +120,79 @@ class ChangeDetection:
             }
 
             # Save image locally
-            self._save_event_image(image, event_type)
+            image_path = self._save_event_image(image, event_type)
+            change_info['image_path'] = str(image_path)
+
+            detections = self._serialize_detections(detections_raw, names)
+            person_count = curr_count
+            self._send_event(event_type, image_path, person_count, detections, change_info)
 
             return change_info
 
         return None
+
+    def _authenticate(self):
+        """Authenticate with the server using the security key."""
+        try:
+            res = requests.post(
+                f"{self.HOST}/api/auth/login/",
+                json={'security_key': self.SECURITY_KEY}
+            )
+            res.raise_for_status()
+            data = res.json()
+            self.token = data.get('token')
+            print("[ChangeDetection] Authenticated successfully")
+        except Exception as exc:
+            print(f"[ChangeDetection] Auth failed: {exc}")
+            raise
+
+    def _send_event(self, event_type, image, person_count, detections, change_info):
+        """Send event data to the server."""
+        headers = {'Authorization': f"Token {self.token}"} if self.token else {}
+        data = {
+            'event_type': event_type,
+            'captured_at': datetime.now().isoformat(),
+            'person_count': person_count,
+            'detections': json.dumps(detections),
+            'change_info': json.dumps(change_info)
+        }
+
+        image_path = pathlib.Path(image) if not isinstance(image, pathlib.Path) else image
+        try:
+            with open(image_path, 'rb') as handle:
+                files = {'image': handle}
+                res = requests.post(
+                    f"{self.HOST}/api/machines/{self.MACHINE_ID}/events/",
+                    data=data,
+                    files=files,
+                    headers=headers,
+                    timeout=10
+                )
+
+            if res.status_code in (200, 201):
+                print(f"[ChangeDetection] Event sent: {event_type}")
+            else:
+                print(f"[ChangeDetection] Send failed: {res.status_code}")
+        except requests.RequestException as exc:
+            print(f"[ChangeDetection] Send failed: {exc}")
+
+    def _serialize_detections(self, detections_raw, names):
+        """Serialize raw detections into JSON-friendly list."""
+        if detections_raw is None:
+            return []
+        serialized = []
+        for row in detections_raw:
+            try:
+                x1, y1, x2, y2, conf, cls_id = row[:6]
+                cls_index = int(cls_id)
+                serialized.append({
+                    'class': names[cls_index] if cls_index < len(names) else str(cls_index),
+                    'confidence': float(conf),
+                    'bbox': [float(x1), float(y1), float(x2), float(y2)]
+                })
+            except Exception:
+                continue
+        return serialized
 
     def _save_event_image(self, image, event_type):
         """
