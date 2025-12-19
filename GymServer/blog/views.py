@@ -269,10 +269,15 @@ def dashboard(request):
         last_event_time=Max('events__captured_at')
     )
     total_assets = machines.count()
-    
+
+    # Calculate currently in use: (sum of event counts) / 2
+    total_events = sum(m.event_count for m in machines)
+    currently_in_use = total_events // 2
+
     context = {
         'machines': machines,
         'total_assets': total_assets,
+        'currently_in_use': currently_in_use,
     }
     return render(request, 'blog/dashboard.html', context)
 
