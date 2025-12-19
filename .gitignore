@@ -66,6 +66,7 @@ Thumbs.db
 .claude/
 # docs/
 _bmad/
+_bmad-output/
 
 CLAUDE.md
 GEMINI.md
