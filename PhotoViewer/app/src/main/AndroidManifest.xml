@@ -36,6 +36,16 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".MachineListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PhotoViewer" />
+
+        <activity
+            android:name=".EventPlaceholderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PhotoViewer" />
     </application>
 
 </manifest>
