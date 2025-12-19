@@ -10,6 +10,7 @@ from .serializers import (
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_200_OK
 from rest_framework.authtoken.models import Token
 
@@ -152,6 +153,13 @@ def machine_events(request, machine_id):
             queryset = queryset.filter(captured_at__date__gte=date_from)
         if date_to:
             queryset = queryset.filter(captured_at__date__lte=date_to)
+
+        # Apply pagination
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = MachineEventListSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
 
         serializer = MachineEventListSerializer(queryset, many=True)
         return Response(serializer.data)

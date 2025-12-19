@@ -434,43 +434,271 @@ class MachineEventListAPITestCase(TestCase):
         )
 
     def test_event_list_success(self):
-        """Test GET /api/machines/{id}/events/ returns events"""
+        """
+        Story 2.2 AC #1
+        Test GET /api/machines/{id}/events/ returns paginated events
+        """
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.get(f'/api/machines/{self.machine.id}/events/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, list)
-        self.assertEqual(len(response.data), 2)
+        # Response should be paginated
+        self.assertIn('count', response.data)
+        self.assertIn('results', response.data)
+        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['results']), 2)
 
     def test_event_list_ordered_by_captured_at_desc(self):
-        """Test events are ordered by captured_at descending (newest first)"""
+        """
+        Story 2.2 AC #1
+        Test events are ordered by captured_at descending (newest first)
+        """
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.get(f'/api/machines/{self.machine.id}/events/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data['results']
         # event2 is newer, should be first
-        self.assertEqual(response.data[0]['id'], self.event2.id)
-        self.assertEqual(response.data[1]['id'], self.event1.id)
+        self.assertEqual(results[0]['id'], self.event2.id)
+        self.assertEqual(results[1]['id'], self.event1.id)
 
     def test_event_list_filter_by_event_type_start(self):
-        """Test filtering by event_type=start"""
+        """
+        Story 2.2 AC #2
+        Test filtering by event_type=start
+        """
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.get(f'/api/machines/{self.machine.id}/events/?event_type=start')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['event_type'], 'start')
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['event_type'], 'start')
 
     def test_event_list_filter_by_event_type_end(self):
-        """Test filtering by event_type=end"""
+        """
+        Story 2.2 AC #3
+        Test filtering by event_type=end
+        """
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
         response = self.client.get(f'/api/machines/{self.machine.id}/events/?event_type=end')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['event_type'], 'end')
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['event_type'], 'end')
 
     def test_event_list_without_auth_returns_401(self):
         """Test GET without auth returns 401"""
         response = self.client.get(f'/api/machines/{self.machine.id}/events/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_event_list_filter_by_date_from(self):
+        """
+        Story 2.2 AC #4
+        Test filtering events by date_from
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        # event1 is 2 hours ago, event2 is 1 hour ago
+        # Filter from 1.5 hours ago should only return event2
+        date_from = (timezone.now() - timezone.timedelta(hours=1, minutes=30)).date().isoformat()
+        response = self.client.get(f'/api/machines/{self.machine.id}/events/?date_from={date_from}')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Both events are on the same day, so both should be returned
+        self.assertEqual(response.data['count'], 2)
+
+    def test_event_list_filter_by_date_to(self):
+        """
+        Story 2.2 AC #4
+        Test filtering events by date_to
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        date_to = timezone.now().date().isoformat()
+        response = self.client.get(f'/api/machines/{self.machine.id}/events/?date_to={date_to}')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_event_list_filter_by_date_range(self):
+        """
+        Story 2.2 AC #4
+        Test filtering events by combined date_from and date_to
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        today = timezone.now().date().isoformat()
+        response = self.client.get(
+            f'/api/machines/{self.machine.id}/events/?date_from={today}&date_to={today}'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_event_list_filter_by_future_date_returns_empty(self):
+        """
+        Story 2.2 AC #4
+        Test filtering by future date returns no events
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        future_date = (timezone.now() + timezone.timedelta(days=1)).date().isoformat()
+        response = self.client.get(f'/api/machines/{self.machine.id}/events/?date_from={future_date}')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+
+
+class MachineEventDetailAPITestCase(TestCase):
+    """Test cases for MachineEvent detail endpoint - Story 2.2 AC #5, #7"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.api_user = ApiUser.objects.create(
+            name='Test API User',
+            security_key='test-key-123',
+            user=self.user,
+            is_active=True
+        )
+        self.token, _ = Token.objects.get_or_create(user=self.user)
+
+        self.machine = GymMachine.objects.create(
+            name='런닝머신 #1',
+            machine_type='treadmill',
+            location='1층 A구역',
+            is_active=True
+        )
+
+        self.event = MachineEvent.objects.create(
+            machine=self.machine,
+            event_type='start',
+            image=create_test_image('detail_test.jpg'),
+            captured_at=timezone.now(),
+            person_count=2,
+            detections={'person': [{'bbox': [100, 50, 300, 400], 'confidence': 0.95}]},
+            change_info={'event_type': 'start', 'prev_count': 0, 'curr_count': 2}
+        )
+
+    def test_event_detail_returns_all_fields(self):
+        """
+        Story 2.2 AC #5
+        Test GET /api_root/events/{id}/ returns all required fields
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.get(f'/api_root/events/{self.event.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        required_fields = [
+            'id', 'machine', 'machine_name',
+            'event_type', 'event_type_display',
+            'image', 'captured_at', 'created_at',
+            'person_count', 'detections', 'change_info'
+        ]
+        for field in required_fields:
+            self.assertIn(field, response.data, f"Field '{field}' missing from response")
+
+    def test_event_detail_returns_correct_data(self):
+        """
+        Story 2.2 AC #5
+        Test event detail returns correct values
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.get(f'/api_root/events/{self.event.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.event.id)
+        self.assertEqual(response.data['machine'], self.machine.id)
+        self.assertEqual(response.data['machine_name'], self.machine.name)
+        self.assertEqual(response.data['event_type'], 'start')
+        self.assertEqual(response.data['event_type_display'], '사용 시작')
+        self.assertEqual(response.data['person_count'], 2)
+        self.assertIn('person', response.data['detections'])
+        self.assertEqual(response.data['change_info']['event_type'], 'start')
+
+    def test_event_detail_nonexistent_returns_404(self):
+        """
+        Story 2.2 AC #7
+        Test GET /api_root/events/{id}/ with non-existent id returns 404
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.get('/api_root/events/99999/')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_event_detail_without_auth_returns_401(self):
+        """Test event detail without auth returns 401"""
+        response = self.client.get(f'/api_root/events/{self.event.id}/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class MachineEventPaginationTestCase(TestCase):
+    """Test cases for pagination - Story 2.2 AC #6"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.api_user = ApiUser.objects.create(
+            name='Test API User',
+            security_key='test-key-123',
+            user=self.user,
+            is_active=True
+        )
+        self.token, _ = Token.objects.get_or_create(user=self.user)
+
+        self.machine = GymMachine.objects.create(
+            name='런닝머신 #1',
+            machine_type='treadmill',
+            location='1층 A구역',
+            is_active=True
+        )
+
+        # Create 25 events (more than PAGE_SIZE of 20)
+        now = timezone.now()
+        for i in range(25):
+            MachineEvent.objects.create(
+                machine=self.machine,
+                event_type='start' if i % 2 == 0 else 'end',
+                image=create_test_image(f'event_{i}.jpg'),
+                captured_at=now - timezone.timedelta(minutes=i),
+                person_count=i % 3
+            )
+
+    def test_pagination_response_format(self):
+        """
+        Story 2.2 AC #6
+        Test paginated response has correct format
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.get(f'/api/machines/{self.machine.id}/events/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('count', response.data)
+        self.assertIn('next', response.data)
+        self.assertIn('previous', response.data)
+        self.assertIn('results', response.data)
+
+    def test_pagination_default_page_size(self):
+        """
+        Story 2.2 AC #6
+        Test pagination uses default page size of 20
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.get(f'/api/machines/{self.machine.id}/events/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 25)
+        self.assertEqual(len(response.data['results']), 20)
+        self.assertIsNotNone(response.data['next'])
+        self.assertIsNone(response.data['previous'])
+
+    def test_pagination_second_page(self):
+        """
+        Story 2.2 AC #6
+        Test accessing second page of results
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        response = self.client.get(f'/api/machines/{self.machine.id}/events/?page=2')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 25)
+        self.assertEqual(len(response.data['results']), 5)  # 25 - 20 = 5
+        self.assertIsNone(response.data['next'])
+        self.assertIsNotNone(response.data['previous'])
