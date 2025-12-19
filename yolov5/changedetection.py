@@ -2,16 +2,21 @@
 Bidirectional Change Detection for Gym Equipment Usage Monitoring
 
 Detects usage start (0→1+) and usage end (1+→0) events for a target class.
+Requires state to be stable for DEBOUNCE_SECONDS before triggering events.
 """
 
 import cv2
 import json
 import os
 import pathlib
+import time
 from datetime import datetime
 
 import requests
 import yaml
+
+# Debounce time in seconds - state must be stable for this duration
+DEBOUNCE_SECONDS = 5.0
 
 
 def load_gym_config(config_path=None, env=None):
@@ -69,16 +74,23 @@ class ChangeDetection:
         self.MACHINE_ID = self.config.get('machine_id', 1)
         self.token = None
 
+        # Debounce state tracking
+        self.confirmed_state = 'idle'  # 'idle' or 'active'
+        self.pending_state = None      # 'start' or 'end' or None
+        self.pending_since = None      # Timestamp when pending state started
+        self.pending_image = None      # Image captured when state change first detected
+        self.pending_detections = None # Detections when state change first detected
+
         if self.SECURITY_KEY:
             self._authenticate()
 
     def detect_changes(self, names, detected_current, image, detections_raw):
         """
-        Detect changes in target class count.
+        Detect changes in target class count with debouncing.
 
-        Only triggers events on boundary transitions:
-        - 0 → 1+: "start" event (usage started)
-        - 1+ → 0: "end" event (usage ended)
+        Only triggers events after state is stable for DEBOUNCE_SECONDS:
+        - 0 → 1+ for 5s: "start" event (usage started)
+        - 1+ → 0 for 5s: "end" event (usage ended)
 
         Args:
             names: Class name list
@@ -100,39 +112,82 @@ class ChangeDetection:
         except (ValueError, StopIteration):
             target_idx = 0  # Default to first class if target not found
 
-        prev_count = self.result_prev[target_idx]
         curr_count = detected_current[target_idx]
+        current_time = time.time()
 
-        event_type = None
+        # Determine current instantaneous state
+        current_instant_state = 'active' if curr_count >= 1 else 'idle'
 
-        # 0 → 1+: Usage start
-        if prev_count == 0 and curr_count >= 1:
-            event_type = 'start'
-        # 1+ → 0: Usage end
-        elif prev_count >= 1 and curr_count == 0:
-            event_type = 'end'
-
-        # Update previous state
+        # Update previous state for legacy compatibility
         self.result_prev = detected_current[:]
 
-        if event_type:
-            change_info = {
-                'event_type': event_type,
-                'target_class': self.TARGET_CLASS,
-                'prev_count': prev_count,
-                'curr_count': curr_count,
-                'timestamp': datetime.now().isoformat()
-            }
+        # Determine what event would be triggered if state changes
+        if current_instant_state == 'active' and self.confirmed_state == 'idle':
+            potential_event = 'start'
+        elif current_instant_state == 'idle' and self.confirmed_state == 'active':
+            potential_event = 'end'
+        else:
+            potential_event = None
 
-            # Save image locally
-            image_path = self._save_event_image(image, event_type)
-            change_info['image_path'] = str(image_path)
+        # State machine logic with debouncing
+        if potential_event:
+            # State change detected
+            if self.pending_state == potential_event:
+                # Same pending state - check if debounce time passed
+                elapsed = current_time - self.pending_since
+                if elapsed >= DEBOUNCE_SECONDS:
+                    # Debounce complete - trigger event
+                    event_type = potential_event
+                    self.confirmed_state = current_instant_state
 
-            detections = self._serialize_detections(detections_raw, names)
-            person_count = curr_count
-            self._send_event(event_type, image_path, person_count, detections, change_info)
+                    change_info = {
+                        'event_type': event_type,
+                        'target_class': self.TARGET_CLASS,
+                        'prev_count': 0 if event_type == 'start' else 1,
+                        'curr_count': curr_count,
+                        'timestamp': datetime.now().isoformat(),
+                        'debounce_seconds': DEBOUNCE_SECONDS
+                    }
 
-            return change_info
+                    # Save image (use pending image captured at state change)
+                    image_to_save = self.pending_image if self.pending_image is not None else image
+                    image_path = self._save_event_image(image_to_save, event_type)
+                    change_info['image_path'] = str(image_path)
+
+                    detections = self._serialize_detections(
+                        self.pending_detections if self.pending_detections is not None else detections_raw,
+                        names
+                    )
+                    person_count = curr_count if event_type == 'start' else 0
+                    self._send_event(event_type, image_path, person_count, detections, change_info)
+
+                    # Reset pending state
+                    self.pending_state = None
+                    self.pending_since = None
+                    self.pending_image = None
+                    self.pending_detections = None
+
+                    print(f"[ChangeDetection] Event triggered after {DEBOUNCE_SECONDS}s: {event_type}")
+                    return change_info
+                else:
+                    # Still waiting for debounce
+                    remaining = DEBOUNCE_SECONDS - elapsed
+                    print(f"[ChangeDetection] Pending {potential_event}: {remaining:.1f}s remaining")
+            else:
+                # New pending state - start debounce timer
+                self.pending_state = potential_event
+                self.pending_since = current_time
+                self.pending_image = image.copy() if image is not None else None
+                self.pending_detections = detections_raw
+                print(f"[ChangeDetection] State change detected, waiting {DEBOUNCE_SECONDS}s: {potential_event}")
+        else:
+            # No state change or returned to confirmed state
+            if self.pending_state is not None:
+                print(f"[ChangeDetection] Pending {self.pending_state} cancelled - state reverted")
+                self.pending_state = None
+                self.pending_since = None
+                self.pending_image = None
+                self.pending_detections = None
 
         return None
 

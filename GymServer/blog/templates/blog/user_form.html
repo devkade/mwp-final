@@ -1,0 +1,53 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Add New User - GymFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <div class="flex items-center gap-4 mb-6">
+        <a href="{% url 'user_list' %}" class="p-2 rounded-lg hover:bg-surface-dark text-text-secondary hover:text-white transition-colors">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h1 class="text-white text-2xl font-bold">Add New API User</h1>
+    </div>
+
+    <div class="bg-card-dark rounded-xl border border-border-dark p-6">
+        <form method="POST" class="flex flex-col gap-6">
+            {% csrf_token %}
+            
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-text-secondary">Full Name</label>
+                <input type="text" name="name" required class="bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 text-white placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. John Doe">
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-text-secondary">Security Key</label>
+                <div class="relative">
+                    <input type="text" name="security_key" required class="w-full bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 text-white placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" placeholder="Enter a secure key">
+                    <button type="button" onclick="generateKey()" class="absolute right-2 top-1/2 -translate-y-1/2 text-primary text-xs font-bold px-2 py-1 hover:bg-primary/10 rounded">
+                        GENERATE
+                    </button>
+                </div>
+                <p class="text-xs text-text-secondary">This key will be used for API authentication.</p>
+            </div>
+
+            <div class="pt-4 flex justify-end gap-3">
+                <a href="{% url 'user_list' %}" class="px-5 py-2.5 rounded-lg border border-border-dark text-text-secondary hover:text-white hover:bg-surface-dark font-medium transition-colors">Cancel</a>
+                <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary hover:bg-[#1192d4] text-white font-bold shadow-lg shadow-primary/20 transition-all">Create User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function generateKey() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.querySelector('input[name="security_key"]').value = result;
+}
+</script>
+{% endblock %}

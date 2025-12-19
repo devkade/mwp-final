@@ -1,0 +1,91 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Event Details #{{ event.id }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap items-center gap-2">
+    <a class="text-[#9db0b9] text-sm hover:text-primary transition-colors" href="{% url 'dashboard' %}">Dashboard</a>
+    <span class="material-symbols-outlined text-[#9db0b9] text-sm">chevron_right</span>
+    <a class="text-[#9db0b9] text-sm hover:text-primary transition-colors" href="{% url 'dashboard' %}">Equipment</a>
+    <span class="material-symbols-outlined text-[#9db0b9] text-sm">chevron_right</span>
+    <a class="text-[#9db0b9] text-sm hover:text-primary transition-colors" href="{% url 'equipment_detail' event.machine.pk %}">{{ event.machine.name }}</a>
+    <span class="material-symbols-outlined text-[#9db0b9] text-sm">chevron_right</span>
+    <a class="text-[#9db0b9] text-sm hover:text-primary transition-colors" href="{% url 'usage_history' event.machine.pk %}">History</a>
+    <span class="material-symbols-outlined text-[#9db0b9] text-sm">chevron_right</span>
+    <span class="text-white text-sm font-medium">Event #{{ event.id }}</span>
+</div>
+
+<div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-2">
+        <h1 class="text-white text-3xl md:text-4xl font-bold tracking-tight">Event Details</h1>
+        <p class="text-[#9db0b9] text-base">Captured at {{ event.captured_at|date:"Y-m-d H:i:s" }}</p>
+    </div>
+
+    <div class="bg-[#1c262d] rounded-xl border border-[#283339] overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Image Section -->
+            <div class="bg-black/50 p-6 flex items-center justify-center border-b lg:border-b-0 lg:border-r border-[#283339]">
+                {% if event.image %}
+                <img src="{{ event.image.url }}" alt="Event Capture" class="max-h-[600px] w-auto rounded-lg shadow-2xl border border-[#283339]"/>
+                {% else %}
+                <div class="flex flex-col items-center gap-4 text-[#9db0b9]">
+                    <span class="material-symbols-outlined text-6xl">no_photography</span>
+                    <p>No image available</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Details Section -->
+            <div class="p-6 md:p-8 flex flex-col gap-8">
+                <!-- Status Badge -->
+                <div>
+                    <h3 class="text-[#9db0b9] text-xs font-bold uppercase tracking-wider mb-2">Event Status</h3>
+                    <div class="flex items-center gap-3">
+                        {% if event.event_type == 'start' %}
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold">
+                            <span class="material-symbols-outlined text-lg">play_arrow</span>
+                            Start Session
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#283339] border border-[#3e4a52] text-[#9db0b9] text-sm font-semibold">
+                            <span class="material-symbols-outlined text-lg">stop</span>
+                            End Session
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-[#9db0b9] text-xs font-bold uppercase tracking-wider mb-1">Equipment</h3>
+                        <p class="text-white text-lg font-medium">{{ event.machine.name }}</p>
+                        <p class="text-[#58656d] text-sm">{{ event.machine.location }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-[#9db0b9] text-xs font-bold uppercase tracking-wider mb-1">People Count</h3>
+                        <p class="text-white text-lg font-medium">{{ event.person_count }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-[#9db0b9] text-xs font-bold uppercase tracking-wider mb-1">Captured Time</h3>
+                        <p class="text-white text-lg font-medium">{{ event.captured_at|date:"H:i:s" }}</p>
+                        <p class="text-[#58656d] text-sm">{{ event.captured_at|date:"Y-m-d" }}</p>
+                    </div>
+                </div>
+
+                <!-- JSON Data -->
+                {% if event.detections %}
+                <div>
+                    <h3 class="text-[#9db0b9] text-xs font-bold uppercase tracking-wider mb-2">Detection Data</h3>
+                    <div class="bg-[#111618] rounded-lg p-4 border border-[#283339] font-mono text-xs text-[#9db0b9] overflow-x-auto">
+                        {{ event.detections }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

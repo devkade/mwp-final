@@ -1,0 +1,160 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Equipment Detail - Gym Manager{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs & Header -->
+<div class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+        <a class="text-[#9db0b9] hover:text-primary transition-colors font-medium" href="{% url 'dashboard' %}">Equipment</a>
+        <span class="text-[#9db0b9] font-medium">/</span>
+        <a class="text-[#9db0b9] hover:text-primary transition-colors font-medium" href="#">{{ machine.get_machine_type_display }}</a>
+        <span class="text-[#9db0b9] font-medium">/</span>
+        <span class="text-white font-medium">{{ machine.name }}</span>
+    </div>
+    <div class="flex flex-wrap justify-between items-end gap-4">
+        <div class="flex flex-col gap-1">
+            <h1 class="text-slate-900 dark:text-white text-3xl md:text-4xl font-bold tracking-tight">{{ machine.name }}</h1>
+            <div class="flex items-center gap-3">
+                {% if machine.is_active %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                    <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Active
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                    <span class="size-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                    Maintenance
+                </span>
+                {% endif %}
+                <span class="text-[#9db0b9] text-sm">Zone: {{ machine.location }}</span>
+                <span class="text-[#9db0b9] text-sm">|</span>
+                <span class="text-[#9db0b9] text-sm">ID: #{{ machine.id }}</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'usage_history' machine.pk %}" class="flex items-center justify-center h-10 px-4 rounded-lg bg-[#283339] hover:bg-[#34424a] text-white text-sm font-medium transition-colors border border-transparent hover:border-slate-600">
+                View Logs
+            </a>
+            <button class="flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-bold shadow-lg shadow-primary/20 transition-all">
+                <span class="material-symbols-outlined text-[20px]">report_problem</span>
+                Report Issue
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <!-- Left Column: Visuals (Span 2) -->
+    <div class="xl:col-span-2 flex flex-col gap-6">
+        <!-- Live Feed Card -->
+        <div class="bg-white dark:bg-[#1c2327] rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+            <div class="relative w-full aspect-video bg-slate-900">
+                <!-- Image with Overlay -->
+                {% if machine.thumbnail %}
+                <div class="absolute inset-0 bg-center bg-cover opacity-90" style='background-image: url("{{ machine.thumbnail.url }}");'></div>
+                {% else %}
+                <div class="absolute inset-0 bg-center bg-cover opacity-90" style='background-color: #333;'></div>
+                {% endif %}
+                <!-- Overlay Controls -->
+                <div class="absolute top-4 left-4 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10">
+                    <span class="size-2 rounded-full bg-red-500 animate-pulse"></span>
+                    <span class="text-white text-xs font-bold uppercase tracking-wider">Live Feed • Camera 04</span>
+                </div>
+            </div>
+            <!-- Feed Info Footer -->
+            <div class="p-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm">
+                    <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                    AI Object Detection Active
+                </div>
+                <div class="flex items-center gap-4 text-xs font-mono text-slate-500">
+                    <span>FPS: 30</span>
+                    <span>Res: 1080p</span>
+                    <span>Bitrate: 4500kbps</span>
+                </div>
+            </div>
+        </div>
+        <!-- Technical Specs / Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-5 rounded-xl bg-white dark:bg-[#1c2327] border border-slate-200 dark:border-slate-800">
+                <h3 class="text-slate-900 dark:text-white font-semibold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">memory</span>
+                    System Health
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1.5">
+                            <span class="text-slate-500 dark:text-slate-400">Motor Temp</span>
+                            <span class="text-emerald-500 font-medium">Normal (42°C)</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-500 w-[35%] rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 rounded-xl bg-white dark:bg-[#1c2327] border border-slate-200 dark:border-slate-800">
+                <h3 class="text-slate-900 dark:text-white font-semibold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">info</span>
+                    Device Info
+                </h3>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/50">
+                        <span class="text-slate-500 dark:text-slate-400">Model</span>
+                        <span class="text-slate-900 dark:text-white font-medium">{{ machine.description|default:"Standard Model" }}</span>
+                    </li>
+                    <li class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/50">
+                        <span class="text-slate-500 dark:text-slate-400">Serial Number</span>
+                        <span class="text-slate-900 dark:text-white font-mono">MX-2993-{{ machine.id }}</span>
+                    </li>
+                    <li class="flex justify-between py-1">
+                        <span class="text-slate-500 dark:text-slate-400">Install Date</span>
+                        <span class="text-slate-900 dark:text-white">{{ machine.created_at|date:"M d, Y" }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- Right Column: Data & Activity (Span 1) -->
+    <div class="flex flex-col gap-6">
+        <!-- Quick Stats Grid -->
+        <div class="grid grid-cols-1 gap-4">
+            <!-- Last Event Card -->
+            <div class="bg-white dark:bg-[#1c2327] p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                <p class="text-slate-500 dark:text-[#9db0b9] text-sm font-medium mb-1">Last Event Time</p>
+                <p class="text-slate-900 dark:text-white text-2xl font-bold tracking-tight">
+                    {% if machine.events.first %}
+                        {{ machine.events.first.captured_at|date:"H:i A" }}
+                    {% else %}
+                        --:--
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <!-- Recent Activity Log -->
+        <div class="bg-white dark:bg-[#1c2327] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex flex-col min-h-[300px]">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 dark:text-white">Activity Feed</h3>
+                <a href="{% url 'usage_history' machine.pk %}" class="text-xs text-primary hover:text-primary/80 font-medium">View All</a>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <div class="relative pl-4 border-l border-slate-200 dark:border-slate-700 space-y-6">
+                    {% for event in machine.events.all|slice:":5" %}
+                    <div class="relative">
+                        <div class="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full {% if event.event_type == 'start' %}bg-emerald-500{% else %}bg-slate-300 dark:bg-slate-600{% endif %} ring-4 ring-white dark:ring-[#1c2327]"></div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs text-slate-500 dark:text-slate-400">{{ event.captured_at|date:"H:i A" }}</span>
+                            <p class="text-sm font-medium text-slate-900 dark:text-white">{{ event.get_event_type_display }}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Person Count: {{ event.person_count }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

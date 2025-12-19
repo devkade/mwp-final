@@ -1,0 +1,106 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Gym Usage Statistics{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="flex items-center justify-between mb-8">
+    <div class="flex flex-col">
+        <h2 class="text-2xl font-bold text-white tracking-tight">Facility Usage Analytics</h2>
+        <p class="text-sm text-slate-400 hidden sm:block">Overview of gym traffic and equipment utilization.</p>
+    </div>
+    <div class="flex items-center gap-4">
+        <button class="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#202e36] border border-slate-700 hover:bg-slate-700 rounded-lg text-sm font-medium transition-colors text-slate-200">
+            <span class="material-symbols-outlined text-[20px]">calendar_today</span>
+            <span>Oct 2023</span>
+        </button>
+        <button class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-[#1192d4] text-white rounded-lg text-sm font-bold shadow-lg shadow-primary/20 transition-all active:scale-95">
+            <span class="material-symbols-outlined text-[20px]">download</span>
+            <span>Export Report</span>
+        </button>
+    </div>
+</header>
+
+<!-- Date Range Chips -->
+<div class="flex flex-wrap gap-3 mb-8">
+    <button class="px-5 py-2 rounded-lg bg-primary text-white text-sm font-medium shadow-md shadow-primary/10 transition-colors">Last 7 Days</button>
+    <button class="px-5 py-2 rounded-lg bg-[#19252b] border border-slate-800 text-slate-400 hover:text-white hover:bg-[#202e36] text-sm font-medium transition-colors">This Month</button>
+    <button class="px-5 py-2 rounded-lg bg-[#19252b] border border-slate-800 text-slate-400 hover:text-white hover:bg-[#202e36] text-sm font-medium transition-colors">Last Month</button>
+</div>
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Total Check-ins -->
+    <div class="bg-[#19252b] p-6 rounded-xl border border-slate-800 hover:border-slate-600 transition-colors group">
+        <div class="flex justify-between items-start mb-4">
+            <div class="p-2.5 bg-slate-800/50 rounded-lg text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                <span class="material-symbols-outlined">groups</span>
+            </div>
+            <span class="flex items-center text-emerald-400 text-xs font-bold bg-emerald-400/10 px-2 py-1 rounded">
+                <span class="material-symbols-outlined text-[14px] mr-1">trending_up</span>
+                +12%
+            </span>
+        </div>
+        <h3 class="text-slate-400 text-sm font-medium uppercase tracking-wider">Total Check-ins</h3>
+        <p class="text-3xl font-bold mt-2 text-white">1,245</p>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="bg-[#19252b] rounded-xl border border-slate-800 overflow-hidden shadow-lg shadow-black/20">
+    <div class="p-6 border-b border-slate-800/80 flex flex-wrap gap-4 justify-between items-center bg-[#202e36]/20">
+        <div>
+            <h3 class="text-lg font-bold text-white">Equipment Status & Hours</h3>
+            <p class="text-sm text-slate-400">Detailed logs for individual machines.</p>
+        </div>
+        <div class="relative group">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[18px] group-focus-within:text-primary transition-colors">search</span>
+            <input class="bg-background-dark border border-slate-700 text-sm rounded-lg pl-9 pr-4 py-2 focus:ring-1 focus:ring-primary focus:border-primary outline-none placeholder:text-slate-600 w-64 text-white transition-all" placeholder="Search equipment..." type="text"/>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs text-slate-400 uppercase bg-slate-800/40 border-b border-slate-800">
+                <tr>
+                    <th class="px-6 py-4 font-semibold tracking-wider">Equipment Name</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider">ID</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider">Category</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider text-center">Usage (Hrs)</th>
+                    <th class="px-6 py-4 font-semibold tracking-wider text-right">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/40">
+                {% for machine in machines %}
+                <tr class="hover:bg-[#202e36]/40 transition-colors group cursor-pointer" onclick="window.location.href='{% url 'equipment_detail' machine.pk %}'">
+                    <td class="px-6 py-4 font-medium text-white flex items-center gap-3">
+                        {% if machine.thumbnail %}
+                            <div class="w-10 h-10 rounded-lg bg-slate-700 bg-cover bg-center ring-1 ring-slate-600 group-hover:ring-primary/50 transition-all" style="background-image: url('{{ machine.thumbnail.url }}')"></div>
+                        {% else %}
+                            <div class="w-10 h-10 rounded-lg bg-slate-700 bg-cover bg-center ring-1 ring-slate-600 group-hover:ring-primary/50 transition-all" style="background-color: #333;"></div>
+                        {% endif %}
+                        {{ machine.name }}
+                    </td>
+                    <td class="px-6 py-4 text-slate-400 font-mono">TR-{{ machine.id }}</td>
+                    <td class="px-6 py-4"><span class="px-2.5 py-1 rounded bg-slate-800 text-xs font-medium text-slate-300 border border-slate-700">{{ machine.machine_type }}</span></td>
+                    <td class="px-6 py-4 text-center font-bold text-white">45.2</td>
+                    <td class="px-6 py-4 text-right">
+                        {% if machine.is_active %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 border border-rose-500/20 text-rose-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                            Maintenance
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}API Users - GymFlow{% endblock %}
+
+{% block content %}
+<!-- Page Heading & Actions -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-col gap-1">
+        <h1 class="text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">API Users</h1>
+        <p class="text-[#9db0b9] text-base font-normal">Manage API access and security keys.</p>
+    </div>
+    <a href="{% url 'user_add' %}" class="flex items-center justify-center gap-2 bg-primary hover:bg-[#1192d4] transition-colors text-white h-12 px-6 rounded-lg shadow-[0_4px_14px_0_rgba(19,164,236,0.39)]">
+        <span class="material-symbols-outlined" style="font-size: 20px;">person_add</span>
+        <span class="text-sm font-bold tracking-wide">Add User</span>
+    </a>
+</div>
+
+<!-- Search & Filters -->
+<div class="flex flex-col lg:flex-row gap-4 lg:items-center justify-between bg-[#1c262d] p-4 rounded-xl border border-[#283339]">
+    <div class="flex flex-1 flex-col md:flex-row gap-4 w-full">
+        <div class="relative flex-1 min-w-[240px]">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9db0b9]" style="font-size: 20px;">search</span>
+            <input class="w-full bg-[#111618] text-white text-sm rounded-lg border border-[#283339] focus:border-primary focus:ring-1 focus:ring-primary pl-11 pr-4 py-3 outline-none placeholder:text-[#58656d]" placeholder="Search by name or key..." type="text"/>
+        </div>
+        <div class="relative w-full md:w-48">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9db0b9]" style="font-size: 20px;">filter_alt</span>
+            <select class="w-full bg-[#111618] text-white text-sm rounded-lg border border-[#283339] focus:border-primary focus:ring-1 focus:ring-primary pl-11 pr-8 py-3 outline-none appearance-none cursor-pointer">
+                <option>All Statuses</option>
+                <option>Active</option>
+                <option>Inactive</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#9db0b9] pointer-events-none" style="font-size: 20px;">arrow_drop_down</span>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="bg-[#1c262d] rounded-xl border border-[#283339] overflow-hidden flex flex-col flex-1">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-[#111618] border-b border-[#283339]">
+                    <th class="p-4 pl-6 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Name</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Security Key</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Django User</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Created At</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Status</th>
+                    <th class="p-4 pr-6 text-right text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#283339]">
+                {% for api_user in api_users %}
+                <tr class="group hover:bg-[#202b33] transition-colors">
+                    <td class="p-4 pl-6">
+                        <div class="flex items-center gap-3">
+                             <div class="size-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
+                                {{ api_user.name|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <p class="text-white text-sm font-semibold">{{ api_user.name }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-[#9db0b9] text-sm font-mono truncate max-w-[150px]">{{ api_user.security_key }}</td>
+                    <td class="p-4 text-white text-sm">{{ api_user.user.username }}</td>
+                    <td class="p-4 text-white text-sm">{{ api_user.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="p-4">
+                        {% if api_user.is_active %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                            Inactive
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 pr-6 text-right">
+                        <form method="POST" action="{% url 'user_delete' api_user.pk %}" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-rose-500 hover:text-rose-400 p-1 rounded hover:bg-rose-500/10 transition-colors" title="Delete User">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="p-8 text-center text-[#9db0b9]">
+                        No users found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GymFlow Manager - Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700;900&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13a4ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                        "surface-dark": "#1c2327",
+                        "border-dark": "#3b4b54",
+                        "text-secondary": "#9db0b9",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "Noto Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px
+    }
+::-webkit-scrollbar-track {
+    background: #101c22
+    }
+::-webkit-scrollbar-thumb {
+    background: #3b4b54;
+    border-radius: 4px
+    }
+.bg-gym-pattern {
+    background-image: linear-gradient(rgba(16, 28, 34, 0.9), rgba(16, 28, 34, 0.95)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuDjDrKz9qdzzDlncb2YJrZOqhpN-_uKz7NjM5GUDCFWLwz6hxWGXI9-pAALG_zM_l0GqS4Jo11w2HE27HUN3jg-5uMGuL7mKC7EvrfoEqooUv1KtT3Ne9dhxzDV1i3zxk4aFweGqiMguddT4UO56C-E-1FQwmvsHlFAQ7Hx673QdIXUFp-6vFi_s5r-Hnl-fQlnIT9mancXnY53MTQAHlWbEfalTSjJb9pjl0TwvW8vDsw2hFzVQkSD2dW7YPkEwwlyTx0FZofGf74);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed
+    }</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white min-h-screen flex flex-col bg-gym-pattern" data-alt="Dark abstract gym background with gradient overlay">
+<div class="flex-1 flex flex-col justify-center items-center p-4 sm:p-8">
+<!-- Central Authentication Card -->
+<div class="w-full max-w-md bg-surface-dark/95 backdrop-blur-sm border border-border-dark rounded-xl shadow-2xl overflow-hidden relative">
+<!-- Decorative top bar -->
+<div class="h-1.5 w-full bg-gradient-to-r from-primary to-blue-600"></div>
+<div class="p-8 sm:p-10 flex flex-col gap-8">
+<!-- Logo Area -->
+<div class="flex flex-col gap-2 text-center">
+<div class="flex justify-center mb-4">
+<div class="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-4xl">fitness_center</span>
+</div>
+</div>
+<h1 class="text-3xl font-black tracking-tight text-white">GymFlow Manager</h1>
+<p class="text-text-secondary text-sm font-normal leading-relaxed">Enter your security key to access the management portal.</p>
+</div>
+<!-- Form Area -->
+<form class="flex flex-col gap-5" method="POST" action="{% url 'gym_login' %}">
+{% csrf_token %}
+<!-- Security Key Input -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-white pl-1" for="security-key">Security Key</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-text-secondary group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">key</span>
+</div>
+<input autofocus="" class="form-input block w-full pl-11 pr-12 py-3.5 bg-[#111618] border border-border-dark rounded-lg text-white placeholder-text-secondary/50 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200 text-base" id="security-key" name="security_key" placeholder="e.g. GYM-8821-X" type="password" required/>
+<button class="absolute inset-y-0 right-0 flex items-center pr-4 text-text-secondary hover:text-white transition-colors cursor-pointer focus:outline-none" type="button" onclick="togglePasswordVisibility()">
+<span class="material-symbols-outlined text-[20px]" id="visibility-icon">visibility</span>
+</button>
+</div>
+{% if error %}
+<p class="text-red-500 text-sm mt-1">{{ error }}</p>
+{% endif %}
+</div>
+<!-- Primary Action Button -->
+<button class="w-full bg-primary hover:bg-primary/90 active:bg-primary/95 text-white font-bold text-base py-3.5 px-6 rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 flex items-center justify-center gap-2 group mt-2" type="submit">
+<span>Login to Dashboard</span>
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+</button>
+</form>
+<!-- Helper Links -->
+<div class="flex flex-col items-center gap-4 pt-2">
+<div class="flex items-center gap-4 text-sm text-text-secondary">
+<a class="hover:text-white hover:underline transition-colors" href="#">Forgot Key?</a>
+<span class="w-1 h-1 rounded-full bg-border-dark"></span>
+<a class="hover:text-white hover:underline transition-colors" href="#">Contact Support</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Subtle Footer in the main layout space -->
+<footer class="mt-8 text-center">
+<p class="text-text-secondary/60 text-xs font-normal">© 2024 GymFlow Systems. All rights reserved.</p>
+</footer>
+</div>
+
+<script>
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('security-key');
+        const visibilityIcon = document.getElementById('visibility-icon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            visibilityIcon.textContent = 'visibility_off';
+        } else {
+            passwordInput.type = 'password';
+            visibilityIcon.textContent = 'visibility';
+        }
+    }
+</script>
+</body></html>

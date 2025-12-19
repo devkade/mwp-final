@@ -1,0 +1,114 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Login - GymFlow Manager{% endblock %}
+
+{% block extra_head %}
+<style>
+    .bg-gym-pattern {
+        background-image: linear-gradient(rgba(16, 28, 34, 0.9), rgba(16, 28, 34, 0.95)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+</style>
+{% endblock %}
+
+{% block body_class %}min-h-screen flex flex-col bg-gym-pattern{% endblock %}
+
+{% block body %}
+<div class="flex-1 flex flex-col justify-center items-center p-4 sm:p-8">
+    <!-- Central Authentication Card -->
+    <div class="w-full max-w-md bg-surface-dark/95 backdrop-blur-sm border border-border-dark rounded-xl shadow-2xl overflow-hidden relative">
+        <!-- Decorative top bar -->
+        <div class="h-1.5 w-full bg-gradient-to-r from-primary to-blue-600"></div>
+
+        <div class="p-8 sm:p-10 flex flex-col gap-8">
+            <!-- Logo Area -->
+            <div class="flex flex-col gap-2 text-center">
+                <div class="flex justify-center mb-4">
+                    <div class="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-4xl">fitness_center</span>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-black tracking-tight text-white">GymFlow Manager</h1>
+                <p class="text-text-secondary text-sm font-normal leading-relaxed">
+                    Enter your security key to access the management portal.
+                </p>
+            </div>
+
+            <!-- Form Area -->
+            <form method="post" action="{% url 'web_login' %}" class="flex flex-col gap-5">
+                {% csrf_token %}
+
+                <!-- Security Key Input -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-white pl-1" for="security-key">Security Key</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-text-secondary group-focus-within:text-primary transition-colors">
+                            <span class="material-symbols-outlined">key</span>
+                        </div>
+                        <input
+                            autofocus
+                            class="form-input block w-full pl-11 pr-12 py-3.5 bg-[#111618] border border-border-dark rounded-lg text-white placeholder-text-secondary/50 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200 text-base"
+                            id="security-key"
+                            name="security_key"
+                            placeholder="e.g. GYM-8821-X"
+                            type="password"
+                            required
+                        />
+                        <button class="absolute inset-y-0 right-0 flex items-center pr-4 text-text-secondary hover:text-white transition-colors cursor-pointer focus:outline-none" type="button" onclick="togglePassword()">
+                            <span class="material-symbols-outlined text-[20px]" id="toggle-icon">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                {% if error %}
+                <div class="flex items-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <span class="material-symbols-outlined text-red-400 text-[20px]">error</span>
+                    <p class="text-red-400 text-sm">{{ error }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Primary Action Button -->
+                <button
+                    class="w-full bg-primary hover:bg-primary/90 active:bg-primary/95 text-white font-bold text-base py-3.5 px-6 rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 flex items-center justify-center gap-2 group mt-2"
+                    type="submit"
+                >
+                    <span>Login to Dashboard</span>
+                    <span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+                </button>
+            </form>
+
+            <!-- Helper Links -->
+            <div class="flex flex-col items-center gap-4 pt-2">
+                <div class="flex items-center gap-4 text-sm text-text-secondary">
+                    <a class="hover:text-white hover:underline transition-colors" href="#">Forgot Key?</a>
+                    <span class="w-1 h-1 rounded-full bg-border-dark"></span>
+                    <a class="hover:text-white hover:underline transition-colors" href="#">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subtle Footer -->
+    <footer class="mt-8 text-center">
+        <p class="text-text-secondary/60 text-xs font-normal">&copy; 2024 GymFlow Systems. All rights reserved.</p>
+    </footer>
+</div>
+
+<script>
+function togglePassword() {
+    const input = document.getElementById('security-key');
+    const icon = document.getElementById('toggle-icon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'visibility_off';
+    } else {
+        input.type = 'password';
+        icon.textContent = 'visibility';
+    }
+}
+</script>
+{% endblock %}

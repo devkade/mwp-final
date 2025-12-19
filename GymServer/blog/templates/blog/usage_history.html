@@ -1,0 +1,174 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{{ machine.name }} - History{% endblock %}
+
+{% block content %}
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap items-center gap-2">
+    <a class="text-[#9db0b9] text-sm hover:text-primary transition-colors" href="{% url 'dashboard' %}">Dashboard</a>
+    <span class="material-symbols-outlined text-[#9db0b9] text-sm">chevron_right</span>
+    <a class="text-[#9db0b9] text-sm hover:text-primary transition-colors" href="{% url 'dashboard' %}">Equipment</a>
+    <span class="material-symbols-outlined text-[#9db0b9] text-sm">chevron_right</span>
+    <span class="text-white text-sm font-medium">{{ machine.name }}</span>
+</div>
+
+<!-- Page Header & Stats -->
+<div class="flex flex-col gap-6">
+    <div class="flex flex-wrap justify-between items-end gap-4">
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-3">
+                <h1 class="text-white text-3xl md:text-4xl font-bold tracking-tight">{{ machine.name }}</h1>
+                {% if machine.is_active %}
+                <span class="px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-semibold border border-green-500/20">Active</span>
+                {% else %}
+                <span class="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-500 text-xs font-semibold border border-rose-500/20">Inactive</span>
+                {% endif %}
+            </div>
+            <p class="text-[#9db0b9] text-base">{{ machine.description|default:"Detailed usage logs and activity history." }}</p>
+        </div>
+        <div class="flex gap-3">
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#283339] hover:bg-[#323f47] text-white text-sm font-medium transition-colors border border-[#3e4a52]" onclick="window.print()">
+                <span class="material-symbols-outlined text-[20px]">print</span>
+                Print
+            </button>
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-[20px]">download</span>
+                Export CSV
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filters & Search Toolbar -->
+<div class="bg-surface-dark rounded-xl p-4 border border-[#283339] flex flex-col md:flex-row gap-4 items-center justify-between sticky top-0 z-10 shadow-xl shadow-black/20 backdrop-blur-sm bg-surface-dark/95">
+    <div class="flex flex-1 w-full md:w-auto gap-4 items-center">
+        <!-- Search -->
+        <div class="relative w-full max-w-md group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-symbols-outlined text-[#9db0b9] group-focus-within:text-primary transition-colors">search</span>
+            </div>
+            <input class="block w-full pl-10 pr-3 py-2.5 bg-[#111618] border border-[#283339] rounded-lg text-white placeholder-[#9db0b9] focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all" placeholder="Search events..." type="text"/>
+        </div>
+    </div>
+    <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+        <!-- Filter Tabs -->
+        <div class="bg-[#111618] p-1 rounded-lg flex w-full sm:w-auto border border-[#283339]">
+            <a href="{% url 'usage_history' machine.pk %}" class="flex-1 sm:flex-none px-4 py-1.5 rounded text-sm font-medium transition-all {% if not current_filter %}bg-[#283339] text-white shadow-sm{% else %}text-[#9db0b9] hover:text-white hover:bg-[#283339]/50{% endif %} text-center">All</a>
+            <a href="{% url 'usage_history' machine.pk %}?event_type=start" class="flex-1 sm:flex-none px-4 py-1.5 rounded text-sm font-medium transition-all {% if current_filter == 'start' %}bg-[#283339] text-white shadow-sm{% else %}text-[#9db0b9] hover:text-white hover:bg-[#283339]/50{% endif %} text-center">Start</a>
+            <a href="{% url 'usage_history' machine.pk %}?event_type=end" class="flex-1 sm:flex-none px-4 py-1.5 rounded text-sm font-medium transition-all {% if current_filter == 'end' %}bg-[#283339] text-white shadow-sm{% else %}text-[#9db0b9] hover:text-white hover:bg-[#283339]/50{% endif %} text-center">End</a>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="bg-surface-dark border border-[#283339] rounded-xl overflow-hidden shadow-lg shadow-black/10 flex-1 min-h-[400px]">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-[#151e24] border-b border-[#283339]">
+                    <th class="px-6 py-4 text-xs font-semibold text-[#9db0b9] uppercase tracking-wider">Image</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-[#9db0b9] uppercase tracking-wider">Date & Time</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-[#9db0b9] uppercase tracking-wider">Event ID</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-[#9db0b9] uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-[#9db0b9] uppercase tracking-wider">Person Count</th>
+                    <th class="px-6 py-4 text-xs font-semibold text-[#9db0b9] uppercase tracking-wider text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#283339]">
+                {% for event in events %}
+                <tr class="group hover:bg-[#202b33] transition-colors cursor-pointer" onclick="window.location='{% url 'event_detail' event.pk %}'">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if event.image %}
+                        <img src="{{ event.image.url }}" alt="Event #{{ event.id }}" class="w-16 h-12 object-cover rounded-lg border border-[#283339] hover:border-primary transition-colors cursor-pointer" onclick="event.stopPropagation(); openImageModal('{{ event.image.url }}', '{{ event.get_event_type_display }}', '{{ event.captured_at|date:"Y-m-d H:i" }}')"/>
+                        {% else %}
+                        <div class="w-16 h-12 rounded-lg bg-[#283339] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[#58656d] text-lg">no_photography</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex flex-col">
+                            <span class="text-white text-sm font-medium">{{ event.captured_at|date:"M d, Y" }}</span>
+                            <span class="text-[#9db0b9] text-xs">{{ event.captured_at|date:"H:i A" }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-[#9db0b9] text-sm font-mono">#{{ event.id }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            {% if event.event_type == 'start' %}
+                            <div class="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                            </div>
+                            <span class="text-white text-sm">Start</span>
+                            {% else %}
+                            <div class="size-8 rounded-full bg-[#283339] flex items-center justify-center text-[#9db0b9]">
+                                <span class="material-symbols-outlined text-[18px]">stop</span>
+                            </div>
+                            <span class="text-[#9db0b9] text-sm">End</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-white text-sm font-medium">{{ event.person_count }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                         <span class="material-symbols-outlined text-[#9db0b9] hover:text-white transition-colors">chevron_right</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 backdrop-blur-sm" onclick="closeImageModal()">
+    <div class="relative max-w-5xl max-h-[90vh] mx-4" onclick="event.stopPropagation()">
+        <!-- Close Button -->
+        <button onclick="closeImageModal()" class="absolute -top-12 right-0 text-white hover:text-primary transition-colors">
+            <span class="material-symbols-outlined text-3xl">close</span>
+        </button>
+        <!-- Image -->
+        <img id="modalImage" src="" alt="Event Image" class="max-h-[80vh] w-auto rounded-xl shadow-2xl border border-[#283339]"/>
+        <!-- Info Overlay -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 rounded-b-xl">
+            <p id="modalEventType" class="text-white text-lg font-semibold"></p>
+            <p id="modalDateTime" class="text-[#9db0b9] text-sm"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+function openImageModal(imageUrl, eventType, dateTime) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalEventType = document.getElementById('modalEventType');
+    const modalDateTime = document.getElementById('modalDateTime');
+
+    modalImage.src = imageUrl;
+    modalEventType.textContent = eventType;
+    modalDateTime.textContent = dateTime;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+</script>
+{% endblock %}

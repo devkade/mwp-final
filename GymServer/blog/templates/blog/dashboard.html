@@ -1,0 +1,135 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Equipment Dashboard - GymFlow{% endblock %}
+
+{% block content %}
+<!-- Page Heading & Actions -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-col gap-1">
+        <h1 class="text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">Equipment Inventory</h1>
+        <p class="text-[#9db0b9] text-base font-normal">Manage and track gym assets status and maintenance schedules.</p>
+    </div>
+    <a href="{% url 'machine_add' %}" class="flex items-center justify-center gap-2 bg-primary hover:bg-[#1192d4] transition-colors text-white h-12 px-6 rounded-lg shadow-[0_4px_14px_0_rgba(19,164,236,0.39)]">
+        <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+        <span class="text-sm font-bold tracking-wide">Add Equipment</span>
+    </a>
+</div>
+
+<!-- Stats Overview -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="flex flex-col p-5 rounded-xl bg-[#1c262d] border border-[#283339] shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+            <p class="text-[#9db0b9] text-sm font-medium">Total Assets</p>
+            <span class="material-symbols-outlined text-primary" style="font-size: 20px;">inventory_2</span>
+        </div>
+        <p class="text-white text-2xl font-bold">{{ total_assets }}</p>
+        <div class="flex items-center gap-1 mt-2">
+            <span class="material-symbols-outlined text-emerald-400" style="font-size: 16px;">trending_up</span>
+            <span class="text-emerald-400 text-xs font-medium">+2% this month</span>
+        </div>
+    </div>
+    <div class="flex flex-col p-5 rounded-xl bg-[#1c262d] border border-[#283339] shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+            <p class="text-[#9db0b9] text-sm font-medium">Currently In Use</p>
+            <span class="material-symbols-outlined text-blue-400" style="font-size: 20px;">fitness_center</span>
+        </div>
+        <p class="text-white text-2xl font-bold">89</p>
+        <div class="flex items-center gap-1 mt-2">
+            <span class="material-symbols-outlined text-emerald-400" style="font-size: 16px;">trending_up</span>
+            <span class="text-emerald-400 text-xs font-medium">+12% utilization</span>
+        </div>
+    </div>
+
+</div>
+
+<!-- Search & Filters -->
+<div class="flex flex-col lg:flex-row gap-4 lg:items-center justify-between bg-[#1c262d] p-4 rounded-xl border border-[#283339]">
+    <div class="flex flex-1 flex-col md:flex-row gap-4 w-full">
+        <div class="relative flex-1 min-w-[240px]">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9db0b9]" style="font-size: 20px;">search</span>
+            <input class="w-full bg-[#111618] text-white text-sm rounded-lg border border-[#283339] focus:border-primary focus:ring-1 focus:ring-primary pl-11 pr-4 py-3 outline-none placeholder:text-[#58656d]" placeholder="Search by name or serial..." type="text"/>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Equipment Table -->
+<div class="bg-[#1c262d] rounded-xl border border-[#283339] overflow-hidden flex flex-col flex-1">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-[#111618] border-b border-[#283339]">
+                    <th class="p-4 pl-6 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Equipment</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Area</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Event Count</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Last Activity</th>
+                    <th class="p-4 text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Status</th>
+                    <th class="p-4 pr-6 text-right text-[#9db0b9] font-medium text-xs uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#283339]">
+                {% for machine in machines %}
+                <tr class="group hover:bg-[#202b33] transition-colors cursor-pointer" onclick="window.location.href='{% url 'usage_history' machine.pk %}'">
+                    <td class="p-4 pl-6">
+                        <div class="flex items-center gap-3">
+                            {% if machine.thumbnail %}
+                            <div class="h-10 w-10 rounded-lg bg-cover bg-center shrink-0 hidden md:block" style="background-image: url('{{ machine.thumbnail.url }}');"></div>
+                            {% else %}
+                            <div class="h-10 w-10 rounded-lg bg-cover bg-center shrink-0 hidden md:block" style="background-color: #333;"></div>
+                            {% endif %}
+                            <div>
+                                <p class="text-white text-sm font-semibold">{{ machine.name }}</p>
+                                <p class="text-[#9db0b9] text-xs">{{ machine.machine_type }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-white text-sm">{{ machine.location }}</td>
+                    <td class="p-4 text-[#9db0b9] text-sm font-mono">{{ machine.event_count }}</td>
+                    <td class="p-4 text-white text-sm">
+                        {% if machine.last_event_time %}
+                            {{ machine.last_event_time|date:"M d, H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% if machine.is_active %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                            Inactive
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 pr-6 text-right">
+                        <button class="text-[#9db0b9] hover:text-white p-1 rounded hover:bg-[#283339] transition-colors" onclick="event.stopPropagation(); window.location.href='{% url 'equipment_detail' machine.pk %}'">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">info</span>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination -->
+    <div class="mt-auto border-t border-[#283339] bg-[#1c262d] p-4 flex items-center justify-between">
+        <p class="text-[#9db0b9] text-xs">Showing {{ machines.count }} items</p>
+        <div class="flex items-center gap-2">
+            <button class="flex items-center justify-center size-8 rounded-lg border border-[#283339] text-[#9db0b9] hover:bg-[#283339] hover:text-white transition-colors disabled:opacity-50">
+                <span class="material-symbols-outlined" style="font-size: 18px;">chevron_left</span>
+            </button>
+            <button class="flex items-center justify-center size-8 rounded-lg bg-primary text-white text-sm font-bold shadow-md">1</button>
+            <span class="text-[#9db0b9] text-xs">...</span>
+            <button class="flex items-center justify-center size-8 rounded-lg border border-[#283339] text-[#9db0b9] hover:bg-[#283339] hover:text-white transition-colors">
+                <span class="material-symbols-outlined" style="font-size: 18px;">chevron_right</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

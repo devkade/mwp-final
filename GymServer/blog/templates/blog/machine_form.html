@@ -1,0 +1,79 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Add Equipment - GymFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center gap-4 mb-6">
+        <a href="{% url 'machine_list' %}" class="p-2 rounded-lg hover:bg-surface-dark text-text-secondary hover:text-white transition-colors">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h1 class="text-white text-2xl font-bold">Add New Equipment</h1>
+    </div>
+
+    <div class="bg-card-dark rounded-xl border border-border-dark p-6">
+        <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-text-secondary">Equipment Name</label>
+                    <input type="text" name="name" required class="bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 text-white placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. Treadmill X1">
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-text-secondary">Type/Category</label>
+                    <select name="machine_type" class="bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none">
+                        <option value="Cardio">Cardio</option>
+                        <option value="Strength">Strength</option>
+                        <option value="Functional">Functional</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-text-secondary">Location / Zone</label>
+                <input type="text" name="location" class="bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 text-white placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. Cardio Zone A">
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-text-secondary">Description</label>
+                <textarea name="description" rows="3" class="bg-surface-dark border border-border-dark rounded-lg px-4 py-2.5 text-white placeholder:text-slate-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none" placeholder="Optional details..."></textarea>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-text-secondary">Equipment Image</label>
+                <div class="border-2 border-dashed border-border-dark rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-text-secondary transition-colors cursor-pointer relative group">
+                    <input type="file" name="thumbnail" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
+                    <div id="upload-placeholder">
+                        <span class="material-symbols-outlined text-4xl text-text-secondary mb-2 group-hover:text-white transition-colors">cloud_upload</span>
+                        <p class="text-sm text-text-secondary group-hover:text-white transition-colors">Click or drag image here</p>
+                    </div>
+                    <img id="image-preview" src="#" alt="Preview" class="hidden max-h-48 rounded-lg shadow-lg">
+                </div>
+            </div>
+
+            <div class="pt-4 flex justify-end gap-3">
+                <a href="{% url 'machine_list' %}" class="px-5 py-2.5 rounded-lg border border-border-dark text-text-secondary hover:text-white hover:bg-surface-dark font-medium transition-colors">Cancel</a>
+                <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary hover:bg-[#1192d4] text-white font-bold shadow-lg shadow-primary/20 transition-all">Add Machine</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('image-preview').src = e.target.result;
+            document.getElementById('image-preview').classList.remove('hidden');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}
