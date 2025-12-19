@@ -348,9 +348,10 @@ class PostListAPITests(APITestCase):
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        results = response.data['results']
+        self.assertEqual(len(results), 3)
         # Verify post structure
-        post = response.data[0]
+        post = results[0]
         self.assertIn('id', post)
         self.assertIn('title', post)
         self.assertIn('text', post)
@@ -399,8 +400,9 @@ class PostListAPITests(APITestCase):
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
-        self.assertEqual(len(response.data), 0)
+        # Response is paginated
+        self.assertEqual(response.data['results'], [])
+        self.assertEqual(response.data['count'], 0)
 
 
 # =============================================================================
@@ -770,9 +772,10 @@ class FullAuthenticationFlowTests(APITestCase):
         # Step 3: List posts and verify created post is there
         list_response = self.client.get('/api_root/Post/')
         self.assertEqual(list_response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(list_response.data), 1)
-        self.assertEqual(list_response.data[0]['id'], created_id)
-        self.assertEqual(list_response.data[0]['title'], 'Integration Test Post')
+        results = list_response.data['results']
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['id'], created_id)
+        self.assertEqual(results[0]['title'], 'Integration Test Post')
 
     def test_integration_crud_operations(self):
         """

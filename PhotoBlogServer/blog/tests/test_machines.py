@@ -99,7 +99,9 @@ class GymMachineAPITestCase(TestCase):
         response = self.client.get('/api_root/machines/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, list)
+        # Response is paginated, check 'results' key contains a list
+        self.assertIn('results', response.data)
+        self.assertIsInstance(response.data['results'], list)
 
     def test_machine_list_includes_required_fields(self):
         """Test each machine object includes all required fields"""
@@ -107,9 +109,10 @@ class GymMachineAPITestCase(TestCase):
         response = self.client.get('/api_root/machines/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreater(len(response.data), 0)
+        results = response.data['results']
+        self.assertGreater(len(results), 0)
 
-        machine = response.data[0]
+        machine = results[0]
         required_fields = ['id', 'name', 'machine_type', 'location',
                            'description', 'thumbnail', 'is_active',
                            'event_count', 'last_event']
@@ -122,7 +125,7 @@ class GymMachineAPITestCase(TestCase):
         response = self.client.get('/api_root/machines/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for machine in response.data:
+        for machine in response.data['results']:
             self.assertEqual(machine['event_count'], 0)
 
     def test_machine_list_last_event_is_null(self):
@@ -131,7 +134,7 @@ class GymMachineAPITestCase(TestCase):
         response = self.client.get('/api_root/machines/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        for machine in response.data:
+        for machine in response.data['results']:
             self.assertIsNone(machine['last_event'])
 
     def test_inactive_machines_excluded(self):
@@ -140,10 +143,11 @@ class GymMachineAPITestCase(TestCase):
         response = self.client.get('/api_root/machines/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data['results']
         # Should have 2 active machines, not 3
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(results), 2)
 
-        machine_names = [m['name'] for m in response.data]
+        machine_names = [m['name'] for m in results]
         self.assertNotIn('비활성 머신', machine_names)
 
     def test_unauthorized_without_token(self):
@@ -165,18 +169,19 @@ class GymMachineAPITestCase(TestCase):
         response = self.client.get('/api_root/machines/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        results = response.data['results']
+        self.assertEqual(len(results), 3)
 
         # Zone A comes before Zone B
-        self.assertEqual(response.data[0]['location'], 'Zone A')
-        self.assertEqual(response.data[0]['name'], 'Machine M')
+        self.assertEqual(results[0]['location'], 'Zone A')
+        self.assertEqual(results[0]['name'], 'Machine M')
 
         # Within Zone B, alphabetical by name
-        self.assertEqual(response.data[1]['location'], 'Zone B')
-        self.assertEqual(response.data[1]['name'], 'Machine A')
+        self.assertEqual(results[1]['location'], 'Zone B')
+        self.assertEqual(results[1]['name'], 'Machine A')
 
-        self.assertEqual(response.data[2]['location'], 'Zone B')
-        self.assertEqual(response.data[2]['name'], 'Machine Z')
+        self.assertEqual(results[2]['location'], 'Zone B')
+        self.assertEqual(results[2]['name'], 'Machine Z')
 
     def test_machine_list_returns_correct_machine_type(self):
         """Test machine_type field contains correct value"""
@@ -184,7 +189,8 @@ class GymMachineAPITestCase(TestCase):
         response = self.client.get('/api_root/machines/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data['results']
 
-        machine_types = {m['name']: m['machine_type'] for m in response.data}
+        machine_types = {m['name']: m['machine_type'] for m in results}
         self.assertEqual(machine_types.get('런닝머신 #1'), 'treadmill')
         self.assertEqual(machine_types.get('벤치프레스 #1'), 'bench_press')
