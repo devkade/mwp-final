@@ -25,6 +25,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register('Post', views.BlogImages)
 router.register('machines', views.GymMachineViewSet)
+router.register('events', views.MachineEventViewSet)
 
 urlpatterns = [
     path('', views.post_list, name='post_list'),
@@ -32,6 +33,7 @@ urlpatterns = [
     path('post/new/', views.post_new, name='post_new'),
     path('post/<int:pk>/edit/', views.post_edit, name='post_edit'),
     path('api/auth/login/', views.login, name='api-login'),
+    path('api/machines/<int:machine_id>/events/', views.machine_events, name='machine-events'),
     path('api_root/', include(router.urls)),
     path('admin/', admin.site.urls),
     path('api-token-auth/', obtain_auth_token),

@@ -1,9 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from .models import Post, ApiUser, GymMachine
+from .models import Post, ApiUser, GymMachine, MachineEvent
 from .forms import PostForm
-from rest_framework import viewsets
-from .serializers import PostSerializer, GymMachineSerializer
+from rest_framework import viewsets, status
+from .serializers import (
+    PostSerializer, GymMachineSerializer,
+    MachineEventSerializer, MachineEventListSerializer, MachineEventCreateSerializer
+)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -90,3 +93,76 @@ class GymMachineViewSet(viewsets.ModelViewSet):
     queryset = GymMachine.objects.filter(is_active=True)
     serializer_class = GymMachineSerializer
     permission_classes = [IsAuthenticated]
+
+
+class MachineEventViewSet(viewsets.ModelViewSet):
+    """이벤트 ViewSet for /api_root/events/"""
+    queryset = MachineEvent.objects.all()
+    permission_classes = [IsAuthenticated]
+    ordering = ['-captured_at']
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return MachineEventListSerializer
+        return MachineEventSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Filter by event_type
+        event_type = self.request.query_params.get('event_type')
+        if event_type:
+            queryset = queryset.filter(event_type=event_type)
+
+        # Filter by date range
+        date_from = self.request.query_params.get('date_from')
+        date_to = self.request.query_params.get('date_to')
+
+        if date_from:
+            queryset = queryset.filter(captured_at__date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(captured_at__date__lte=date_to)
+
+        return queryset
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def machine_events(request, machine_id):
+    """
+    GET: List events for a specific machine
+    POST: Create a new event for a specific machine (Edge device)
+    """
+    # Verify machine exists
+    machine = get_object_or_404(GymMachine, pk=machine_id, is_active=True)
+
+    if request.method == 'GET':
+        # List events for this machine
+        queryset = MachineEvent.objects.filter(machine=machine)
+
+        # Filter by event_type
+        event_type = request.query_params.get('event_type')
+        if event_type:
+            queryset = queryset.filter(event_type=event_type)
+
+        # Filter by date range
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        if date_from:
+            queryset = queryset.filter(captured_at__date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(captured_at__date__lte=date_to)
+
+        serializer = MachineEventListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        # Create event for this machine
+        serializer = MachineEventCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(machine=machine)
+            # Return full event data using MachineEventSerializer
+            event = MachineEvent.objects.get(pk=serializer.instance.pk)
+            response_serializer = MachineEventSerializer(event)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

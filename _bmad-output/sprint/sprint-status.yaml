@@ -49,13 +49,13 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: Usage Event Monitoring & Detection
-  epic-2: backlog
-  2-1-backend-event-model-posting-api: backlog
-  2-2-backend-event-list-detail-api: backlog
-  2-3-edge-bidirectional-change-detection: backlog
-  2-4-edge-event-upload-integration: backlog
-  2-5-android-event-list-screen: backlog
-  2-6-android-event-detail-screen: backlog
+  epic-2: in-progress
+  2-1-backend-event-model-posting-api: in-progress
+  2-2-backend-event-list-detail-api: ready-for-dev
+  2-3-edge-bidirectional-change-detection: ready-for-dev
+  2-4-edge-event-upload-integration: ready-for-dev
+  2-5-android-event-list-screen: ready-for-dev
+  2-6-android-event-detail-screen: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Usage Analytics & Statistics

@@ -1,6 +1,7 @@
-from blog.models import Post, GymMachine
+from blog.models import Post, GymMachine, MachineEvent
 from rest_framework import serializers
 from django.contrib.auth.models import User
+import json
 
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
@@ -13,6 +14,73 @@ class PostSerializer(serializers.HyperlinkedModelSerializer):
 
 class SecurityKeyLoginSerializer(serializers.Serializer):
     security_key = serializers.CharField(max_length=64)
+
+
+class MachineEventSerializer(serializers.ModelSerializer):
+    """Full event serializer for detail view"""
+    machine_name = serializers.CharField(source='machine.name', read_only=True)
+    event_type_display = serializers.CharField(
+        source='get_event_type_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = MachineEvent
+        fields = [
+            'id', 'machine', 'machine_name',
+            'event_type', 'event_type_display',
+            'image', 'captured_at', 'created_at',
+            'person_count', 'detections', 'change_info'
+        ]
+        read_only_fields = ['created_at']
+
+
+class MachineEventListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for list view"""
+    machine_name = serializers.CharField(source='machine.name', read_only=True)
+    event_type_display = serializers.CharField(
+        source='get_event_type_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = MachineEvent
+        fields = [
+            'id', 'machine', 'machine_name',
+            'event_type', 'event_type_display',
+            'image', 'captured_at', 'person_count'
+        ]
+
+
+class MachineEventCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating events (POST from Edge)"""
+    detections = serializers.JSONField(required=False, default=dict)
+    change_info = serializers.JSONField(required=False, default=dict)
+
+    class Meta:
+        model = MachineEvent
+        fields = [
+            'event_type', 'image', 'captured_at',
+            'person_count', 'detections', 'change_info'
+        ]
+
+    def validate_detections(self, value):
+        """Handle string JSON input from multipart form"""
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError("Invalid JSON format for detections")
+        return value
+
+    def validate_change_info(self, value):
+        """Handle string JSON input from multipart form"""
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError("Invalid JSON format for change_info")
+        return value
 
 
 class GymMachineSerializer(serializers.ModelSerializer):
