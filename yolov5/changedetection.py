@@ -149,8 +149,8 @@ class ChangeDetection:
                         'debounce_seconds': DEBOUNCE_SECONDS
                     }
 
-                    # Save image (use pending image captured at state change)
-                    image_to_save = self.pending_image if self.pending_image is not None else image
+                    # Save image (use current image after debounce completes)
+                    image_to_save = image
                     image_path = self._save_event_image(image_to_save, event_type)
                     change_info['image_path'] = str(image_path)
 
