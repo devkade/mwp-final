@@ -458,11 +458,12 @@ public class GymApiService {
     }
 
     /**
-     * Parse JSON array response into list of GymMachine objects
+     * Parse paginated JSON response into list of GymMachine objects
      */
     private List<GymMachine> parseMachinesResponse(String jsonStr) throws JSONException {
         List<GymMachine> machines = new ArrayList<>();
-        JSONArray jsonArray = new JSONArray(jsonStr);
+        JSONObject response = new JSONObject(jsonStr);
+        JSONArray jsonArray = response.getJSONArray("results");
 
         for (int i = 0; i < jsonArray.length(); i++) {
             GymMachine machine = new GymMachine(jsonArray.getJSONObject(i));
@@ -473,11 +474,12 @@ public class GymApiService {
     }
 
     /**
-     * Parse JSON array response into list of MachineEvent objects
+     * Parse paginated JSON response into list of MachineEvent objects
      */
     private List<MachineEvent> parseEventsResponse(String jsonStr) throws JSONException {
         List<MachineEvent> events = new ArrayList<>();
-        JSONArray jsonArray = new JSONArray(jsonStr);
+        JSONObject response = new JSONObject(jsonStr);
+        JSONArray jsonArray = response.getJSONArray("results");
 
         for (int i = 0; i < jsonArray.length(); i++) {
             MachineEvent event = new MachineEvent(jsonArray.getJSONObject(i));

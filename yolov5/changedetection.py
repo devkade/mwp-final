@@ -89,10 +89,15 @@ class ChangeDetection:
         Returns:
             dict: change_info if event triggered, None otherwise
         """
-        # Get target class index
+        # Get target class index (names can be dict or list)
         try:
-            target_idx = names.index(self.TARGET_CLASS)
-        except ValueError:
+            if isinstance(names, dict):
+                # names is dict: {0: 'person', 1: 'bicycle', ...}
+                target_idx = next(k for k, v in names.items() if v == self.TARGET_CLASS)
+            else:
+                # names is list: ['person', 'bicycle', ...]
+                target_idx = names.index(self.TARGET_CLASS)
+        except (ValueError, StopIteration):
             target_idx = 0  # Default to first class if target not found
 
         prev_count = self.result_prev[target_idx]
