@@ -59,7 +59,7 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: Usage Analytics & Statistics
-  epic-3: backlog
-  3-1-backend-statistics-api: backlog
-  3-2-android-statistics-screen: backlog
+  epic-3: in-progress
+  3-1-backend-statistics-api: done
+  3-2-android-statistics-screen: done
   epic-3-retrospective: optional
