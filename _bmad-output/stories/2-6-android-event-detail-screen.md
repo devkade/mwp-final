@@ -1,6 +1,6 @@
 # Story 2.6: Android Event Detail Screen
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -26,58 +26,58 @@ so that **I can see the captured image and detection metadata**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create EventDetailActivity (AC: #1, #2, #5, #6, #7)
-  - [ ] 1.1: Create `EventDetailActivity.java`
-  - [ ] 1.2: Get event_id from Intent extras
-  - [ ] 1.3: Implement loadEventDetail() method to fetch from API
-  - [ ] 1.4: Parse JSON response into MachineEvent object
-  - [ ] 1.5: Populate UI with event data
-  - [ ] 1.6: Handle back button navigation
-  - [ ] 1.7: Implement error handling with retry option
+- [x] Task 1: Create EventDetailActivity (AC: #1, #2, #5, #6, #7)
+  - [x] 1.1: Create `EventDetailActivity.java`
+  - [x] 1.2: Get event_id from Intent extras
+  - [x] 1.3: Implement loadEventDetail() method to fetch from API
+  - [x] 1.4: Parse JSON response into MachineEvent object
+  - [x] 1.5: Populate UI with event data
+  - [x] 1.6: Handle back button navigation
+  - [x] 1.7: Implement error handling with retry option
 
-- [ ] Task 2: Create activity_event_detail.xml layout (AC: #2, #3, #5)
-  - [ ] 2.1: Add Toolbar/AppBar with equipment name
-  - [ ] 2.2: Add ImageView for captured image (4:3 aspect ratio)
-  - [ ] 2.3: Add Chip for event type (START green / END red)
-  - [ ] 2.4: Add TextView for timestamp (formatted)
-  - [ ] 2.5: Add TextView for detected persons count
-  - [ ] 2.6: Add TextView for event summary/description
-  - [ ] 2.7: Add error state layout with retry button
-  - [ ] 2.8: Add loading progress indicator
+- [x] Task 2: Create activity_event_detail.xml layout (AC: #2, #3, #5)
+  - [x] 2.1: Add Toolbar/AppBar with equipment name
+  - [x] 2.2: Add ImageView for captured image (4:3 aspect ratio)
+  - [x] 2.3: Add Chip for event type (START green / END red)
+  - [x] 2.4: Add TextView for timestamp (formatted)
+  - [x] 2.5: Add TextView for detected persons count
+  - [x] 2.6: Add TextView for event summary/description
+  - [x] 2.7: Add error state layout with retry button
+  - [x] 2.8: Add loading progress indicator
 
-- [ ] Task 3: Implement image loading (AC: #3)
-  - [ ] 3.1: Load image from URL using existing image loading pattern
-  - [ ] 3.2: Set ImageView aspect ratio to 4:3
-  - [ ] 3.3: Show placeholder while loading
-  - [ ] 3.4: Handle image load failure gracefully
+- [x] Task 3: Implement image loading (AC: #3)
+  - [x] 3.1: Load image from URL using existing image loading pattern
+  - [x] 3.2: Set ImageView aspect ratio to 4:3
+  - [x] 3.3: Show placeholder while loading
+  - [x] 3.4: Handle image load failure gracefully
 
-- [ ] Task 4: Implement full-screen image view (AC: #4)
-  - [ ] 4.1: Set click listener on main image
-  - [ ] 4.2: Create full-screen image dialog or activity
-  - [ ] 4.3: Support pinch-to-zoom (optional)
-  - [ ] 4.4: Add close button for full-screen view
+- [x] Task 4: Implement full-screen image view (AC: #4)
+  - [x] 4.1: Set click listener on main image
+  - [x] 4.2: Create full-screen image dialog or activity
+  - [x] 4.3: Support pinch-to-zoom (optional) - Not implemented (optional)
+  - [x] 4.4: Add close button for full-screen view
 
-- [ ] Task 5: Format and display event details (AC: #5)
-  - [ ] 5.1: Format captured_at to localized date/time string
-  - [ ] 5.2: Display person count with label
-  - [ ] 5.3: Generate event summary text based on event_type
-  - [ ] 5.4: Apply appropriate styling to text elements
+- [x] Task 5: Format and display event details (AC: #5)
+  - [x] 5.1: Format captured_at to localized date/time string
+  - [x] 5.2: Display person count with label
+  - [x] 5.3: Generate event summary text based on event_type
+  - [x] 5.4: Apply appropriate styling to text elements
 
-- [ ] Task 6: Implement error handling (AC: #7)
-  - [ ] 6.1: Show error message on API failure
-  - [ ] 6.2: Add "다시 시도" (Retry) button
-  - [ ] 6.3: Hide content views, show error view on failure
-  - [ ] 6.4: Retry button calls loadEventDetail() again
+- [x] Task 6: Implement error handling (AC: #7)
+  - [x] 6.1: Show error message on API failure
+  - [x] 6.2: Add "다시 시도" (Retry) button
+  - [x] 6.3: Hide content views, show error view on failure
+  - [x] 6.4: Retry button calls loadEventDetail() again
 
-- [ ] Task 7: Navigation integration (AC: #1, #6)
-  - [ ] 7.1: Modify EventListActivity to launch EventDetailActivity on item click
-  - [ ] 7.2: Pass event_id in Intent
-  - [ ] 7.3: Handle up navigation to return to Event List
-  - [ ] 7.4: Register EventDetailActivity in AndroidManifest.xml
+- [x] Task 7: Navigation integration (AC: #1, #6)
+  - [x] 7.1: Modify EventListActivity to launch EventDetailActivity on item click (Already implemented in Story 2.5)
+  - [x] 7.2: Pass event_id in Intent (Already implemented in Story 2.5)
+  - [x] 7.3: Handle up navigation to return to Event List
+  - [x] 7.4: Register EventDetailActivity in AndroidManifest.xml (Already registered)
 
-- [ ] Task 8: Register Activity in AndroidManifest (AC: #1)
-  - [ ] 8.1: Add EventDetailActivity to AndroidManifest.xml
-  - [ ] 8.2: Set parent activity to EventListActivity for up navigation
+- [x] Task 8: Register Activity in AndroidManifest (AC: #1)
+  - [x] 8.1: Add EventDetailActivity to AndroidManifest.xml (Already registered)
+  - [x] 8.2: Set parent activity to EventListActivity for up navigation (Already configured)
 
 ## Dev Notes
 
@@ -213,27 +213,43 @@ cd PhotoViewer
 
 ### Agent Model Used
 
-(To be filled after implementation)
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
-(To be filled during implementation)
+N/A - No issues encountered during implementation
 
 ### Completion Notes List
 
-(To be filled after implementation)
+1. Implemented full EventDetailActivity with API integration using GymApiService
+2. Added getEventDetail() method to GymApiService for fetching single event details from `/api_root/events/{event_id}/`
+3. Created comprehensive activity_event_detail.xml layout with:
+   - AppBar with back navigation
+   - 4:3 aspect ratio image view with tap hint
+   - Event type chip with green (start) / red (end) coloring
+   - Timestamp, person count, and event summary sections
+   - Error state with retry button
+   - Loading progress indicator
+4. Created dialog_fullscreen_image.xml for full-screen image viewing
+5. Image loading uses ExecutorService pattern consistent with EventAdapter
+6. Date formatting uses Korean locale: "yyyy년 MM월 dd일 a h:mm"
+7. Navigation integration already completed in Story 2.5 (EventListActivity → EventDetailActivity)
+8. AndroidManifest.xml already had EventDetailActivity registered with parent activity
 
 ### File List
 
 **Created:**
-(To be filled after implementation)
+- `app/src/main/res/layout/dialog_fullscreen_image.xml`
 
 **Modified:**
-(To be filled after implementation)
+- `app/src/main/java/com/example/photoviewer/EventDetailActivity.java` - Full implementation
+- `app/src/main/java/com/example/photoviewer/services/GymApiService.java` - Added EventDetailCallback and getEventDetail()
+- `app/src/main/res/layout/activity_event_detail.xml` - Full layout implementation
 
 **Deleted:**
-(None expected)
+(None)
 
 ## Change Log
 
 - 2025-12-19: Story created with comprehensive context from implementation specs
+- 2025-12-19: Implementation completed - all acceptance criteria met

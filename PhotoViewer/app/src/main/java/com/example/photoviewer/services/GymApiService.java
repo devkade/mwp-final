@@ -8,6 +8,7 @@ import com.example.photoviewer.models.MachineEvent;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -30,6 +31,7 @@ public class GymApiService {
     private static final String API_BASE_URL = BuildConfig.API_BASE_URL.replaceAll("/$", "");
     private static final String MACHINES_ENDPOINT = "/api_root/machines/";
     private static final String EVENTS_ENDPOINT_TEMPLATE = "/api/machines/%d/events/";
+    private static final String EVENT_DETAIL_ENDPOINT_TEMPLATE = "/api_root/events/%d/";
 
     private static GymApiService instance;
     private final ExecutorService executorService;
@@ -47,6 +49,14 @@ public class GymApiService {
      */
     public interface EventsCallback {
         void onSuccess(List<MachineEvent> events);
+        void onError(String errorMessage);
+    }
+
+    /**
+     * Callback interface for single event detail API calls
+     */
+    public interface EventDetailCallback {
+        void onSuccess(MachineEvent event);
         void onError(String errorMessage);
     }
 
@@ -198,6 +208,86 @@ public class GymApiService {
                     List<MachineEvent> events = parseEventsResponse(response.toString());
                     Log.d(TAG, "Successfully parsed " + events.size() + " events");
                     callback.onSuccess(events);
+
+                } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    Log.e(TAG, "Unauthorized - token invalid or expired");
+                    SessionManager.getInstance().logout();
+                    callback.onError(ERROR_UNAUTHORIZED);
+
+                } else if (responseCode >= 500) {
+                    Log.e(TAG, "Server error: " + responseCode);
+                    callback.onError(ERROR_SERVER);
+
+                } else {
+                    Log.e(TAG, "API error: " + responseCode);
+                    callback.onError(ERROR_NETWORK);
+                }
+
+            } catch (java.net.UnknownHostException e) {
+                Log.e(TAG, "Network error - unknown host: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (java.net.SocketTimeoutException e) {
+                Log.e(TAG, "Network error - timeout: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (java.io.IOException e) {
+                Log.e(TAG, "Network error: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (JSONException e) {
+                Log.e(TAG, "JSON parsing error: " + e.getMessage());
+                callback.onError(ERROR_SERVER);
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        });
+    }
+
+    /**
+     * Fetch a single event detail by event ID
+     *
+     * @param eventId Event ID to fetch
+     * @param callback EventDetailCallback to handle success or error
+     */
+    public void getEventDetail(int eventId, EventDetailCallback callback) {
+        executorService.execute(() -> {
+            HttpURLConnection conn = null;
+            try {
+                String token = SessionManager.getInstance().getToken();
+                if (token == null || token.isEmpty()) {
+                    Log.e(TAG, "No auth token available");
+                    callback.onError(ERROR_UNAUTHORIZED);
+                    return;
+                }
+
+                String urlStr = API_BASE_URL + String.format(EVENT_DETAIL_ENDPOINT_TEMPLATE, eventId);
+                Log.d(TAG, "Fetching event detail from: " + urlStr);
+
+                URL url = new URL(urlStr);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Authorization", "Token " + token);
+                conn.setRequestProperty("Accept", "application/json");
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+
+                int responseCode = conn.getResponseCode();
+                Log.d(TAG, "Response code: " + responseCode);
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    StringBuilder response = new StringBuilder();
+                    try (BufferedReader br = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            response.append(line);
+                        }
+                    }
+
+                    JSONObject jsonObject = new JSONObject(response.toString());
+                    MachineEvent event = new MachineEvent(jsonObject);
+                    Log.d(TAG, "Successfully parsed event detail: " + eventId);
+                    callback.onSuccess(event);
 
                 } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                     Log.e(TAG, "Unauthorized - token invalid or expired");
