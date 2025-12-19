@@ -5,6 +5,7 @@ import android.util.Log;
 import com.example.photoviewer.BuildConfig;
 import com.example.photoviewer.models.GymMachine;
 import com.example.photoviewer.models.MachineEvent;
+import com.example.photoviewer.models.MachineStats;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,6 +33,7 @@ public class GymApiService {
     private static final String MACHINES_ENDPOINT = "/api_root/machines/";
     private static final String EVENTS_ENDPOINT_TEMPLATE = "/api/machines/%d/events/";
     private static final String EVENT_DETAIL_ENDPOINT_TEMPLATE = "/api_root/events/%d/";
+    private static final String STATS_ENDPOINT_TEMPLATE = "/api_root/machines/%d/stats/";
 
     private static GymApiService instance;
     private final ExecutorService executorService;
@@ -57,6 +59,14 @@ public class GymApiService {
      */
     public interface EventDetailCallback {
         void onSuccess(MachineEvent event);
+        void onError(String errorMessage);
+    }
+
+    /**
+     * Callback interface for machine stats API calls
+     */
+    public interface StatsCallback {
+        void onSuccess(MachineStats stats);
         void onError(String errorMessage);
     }
 
@@ -321,6 +331,106 @@ public class GymApiService {
                 }
             }
         });
+    }
+
+    /**
+     * Fetch usage statistics for a specific machine with date range
+     *
+     * @param machineId Machine ID to fetch stats for
+     * @param dateFrom Start date in YYYY-MM-DD format
+     * @param dateTo End date in YYYY-MM-DD format
+     * @param callback StatsCallback to handle success or error
+     */
+    public void getMachineStats(int machineId, String dateFrom, String dateTo, StatsCallback callback) {
+        executorService.execute(() -> {
+            HttpURLConnection conn = null;
+            try {
+                String token = SessionManager.getInstance().getToken();
+                if (token == null || token.isEmpty()) {
+                    Log.e(TAG, "No auth token available");
+                    callback.onError(ERROR_UNAUTHORIZED);
+                    return;
+                }
+
+                String urlStr = buildStatsUrl(machineId, dateFrom, dateTo);
+                Log.d(TAG, "Fetching stats from: " + urlStr);
+
+                URL url = new URL(urlStr);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Authorization", "Token " + token);
+                conn.setRequestProperty("Accept", "application/json");
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+
+                int responseCode = conn.getResponseCode();
+                Log.d(TAG, "Response code: " + responseCode);
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    StringBuilder response = new StringBuilder();
+                    try (BufferedReader br = new BufferedReader(
+                            new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            response.append(line);
+                        }
+                    }
+
+                    JSONObject jsonObject = new JSONObject(response.toString());
+                    MachineStats stats = new MachineStats(jsonObject);
+                    Log.d(TAG, "Successfully parsed stats for machine: " + machineId);
+                    callback.onSuccess(stats);
+
+                } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    Log.e(TAG, "Unauthorized - token invalid or expired");
+                    SessionManager.getInstance().logout();
+                    callback.onError(ERROR_UNAUTHORIZED);
+
+                } else if (responseCode >= 500) {
+                    Log.e(TAG, "Server error: " + responseCode);
+                    callback.onError(ERROR_SERVER);
+
+                } else {
+                    Log.e(TAG, "API error: " + responseCode);
+                    callback.onError(ERROR_NETWORK);
+                }
+
+            } catch (java.net.UnknownHostException e) {
+                Log.e(TAG, "Network error - unknown host: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (java.net.SocketTimeoutException e) {
+                Log.e(TAG, "Network error - timeout: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (java.io.IOException e) {
+                Log.e(TAG, "Network error: " + e.getMessage());
+                callback.onError(ERROR_NETWORK);
+            } catch (JSONException e) {
+                Log.e(TAG, "JSON parsing error: " + e.getMessage());
+                callback.onError(ERROR_SERVER);
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        });
+    }
+
+    private String buildStatsUrl(int machineId, String dateFrom, String dateTo) {
+        StringBuilder urlBuilder = new StringBuilder();
+        urlBuilder.append(API_BASE_URL);
+        urlBuilder.append(String.format(STATS_ENDPOINT_TEMPLATE, machineId));
+
+        boolean hasQuery = false;
+        if (dateFrom != null && !dateFrom.isEmpty()) {
+            urlBuilder.append("?date_from=").append(dateFrom);
+            hasQuery = true;
+        }
+        if (dateTo != null && !dateTo.isEmpty()) {
+            urlBuilder.append(hasQuery ? "&" : "?");
+            urlBuilder.append("date_to=").append(dateTo);
+        }
+
+        return urlBuilder.toString();
     }
 
     private String buildEventsUrl(int machineId, String eventType, String dateFrom, String dateTo) {

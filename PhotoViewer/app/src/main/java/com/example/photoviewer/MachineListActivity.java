@@ -144,14 +144,37 @@ public class MachineListActivity extends AppCompatActivity {
     }
 
     /**
-     * Handle machine item click - navigate to EventListActivity
+     * Handle machine item click - show options dialog
      */
     private void onMachineClicked(GymMachine machine) {
         Log.d(TAG, "Machine clicked: " + machine.getName());
-        Intent intent = new Intent(this, EventListActivity.class);
-        intent.putExtra(EventListActivity.EXTRA_MACHINE_ID, machine.getId());
-        intent.putExtra(EventListActivity.EXTRA_MACHINE_NAME, machine.getName());
-        startActivity(intent);
+        showMachineOptionsDialog(machine);
+    }
+
+    /**
+     * Show dialog with navigation options: Event List or Statistics
+     */
+    private void showMachineOptionsDialog(GymMachine machine) {
+        String[] options = {"이벤트 목록", "사용 통계"};
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(machine.getName())
+            .setItems(options, (dialog, which) -> {
+                if (which == 0) {
+                    // Navigate to Event List
+                    Intent intent = new Intent(this, EventListActivity.class);
+                    intent.putExtra(EventListActivity.EXTRA_MACHINE_ID, machine.getId());
+                    intent.putExtra(EventListActivity.EXTRA_MACHINE_NAME, machine.getName());
+                    startActivity(intent);
+                } else if (which == 1) {
+                    // Navigate to Statistics
+                    Intent intent = new Intent(this, StatsActivity.class);
+                    intent.putExtra(StatsActivity.EXTRA_MACHINE_ID, machine.getId());
+                    intent.putExtra(StatsActivity.EXTRA_MACHINE_NAME, machine.getName());
+                    startActivity(intent);
+                }
+            })
+            .show();
     }
 
     /**

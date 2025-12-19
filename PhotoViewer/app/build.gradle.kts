@@ -67,6 +67,7 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.work:work-runtime:2.9.0")
+    implementation(libs.mpandroidchart)
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:5.2.0")
     androidTestImplementation(libs.ext.junit)
