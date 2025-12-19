@@ -64,7 +64,6 @@ Thumbs.db
 *.bak
 *.cache
 .claude/
-docs/
 _bmad/
 _bmad-output/
 .agent/
